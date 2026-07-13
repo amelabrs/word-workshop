@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <rect width="200" height="200" rx="20" fill="#e9e6f5"/>
+  <circle cx="100" cy="85" r="30" fill="#c9c2e8"/>
+  <path d="M50 165c0-30 22-50 50-50s50 20 50 50z" fill="#c9c2e8"/>
+  <text x="100" y="190" font-family="sans-serif" font-size="14" fill="#9a90c4" text-anchor="middle">photo needed</text>
+</svg>

@@ -1,0 +1,27 @@
+{
+  "evs": {
+    "video_id": "",
+    "words": {
+      "Mother": {},
+      "Father": {},
+      "Sister": {},
+      "Brother": {},
+      "Grandmother": {},
+      "Grandfather": {},
+      "Baby": {},
+      "Family": {}
+    }
+  },
+  "computer": {
+    "video_id": "",
+    "words": {
+      "Keyboard": {},
+      "Mouse": {},
+      "Laptop": {},
+      "Speaker": {},
+      "Monitor": {},
+      "Printer": {},
+      "Screen": {}
+    }
+  }
+}
