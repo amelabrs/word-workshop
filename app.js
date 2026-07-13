@@ -1,19 +1,57 @@
 // ============================================================
-// Word Workshop — Alpine component
-// Data (FOLDERS) lives in folders.js — this file is pure logic.
+// Word Workshop — game logic (data lives in folders.js)
+// Screens/levels/pair-unlock quiz mechanic, mirroring letterbrain, plus a
+// bonus ungated "Say It" phonics screen.
 // ============================================================
 
-const PROGRESS_KEY = "ww_progress";
-
-function loadProgress() {
-  try {
-    return JSON.parse(localStorage.getItem(PROGRESS_KEY) || "{}");
-  } catch (e) {
-    return {};
-  }
+function buildGameLevels() {
+  const out = {};
+  TABS.forEach((t) => (out[t.id] = []));
+  TABS.forEach((t) => {
+    const levels = [...new Set(WORD_ITEMS.filter((i) => i.tab === t.id).map((i) => i.level))].sort(
+      (a, b) => a - b
+    );
+    levels.forEach((contentLevel, idx) => {
+      const pair = idx + 1;
+      out[t.id].push({ tab: t.id, contentLevel, mode: "listen", pair });
+      out[t.id].push({ tab: t.id, contentLevel, mode: "read", pair });
+    });
+  });
+  return out;
 }
-function saveProgress(progress) {
-  localStorage.setItem(PROGRESS_KEY, JSON.stringify(progress));
+const GAME_LEVELS = buildGameLevels();
+
+// ============================================================
+// State
+// ============================================================
+
+let currentTab = TABS[0].id;
+let currentGameLevelIdx = 0;
+let currentContentLevel = 1;
+let gameMode = "listen"; // "listen" | "read"
+let levelItems = [];
+let queue = [];
+let currentIndex = 0;
+let currentItem = null;
+let stars = 0;
+let answered = false;
+let roundClean = true;
+let roundWrongs = 0;
+
+let phonicsTab = TABS[0].id;
+let phonicsIndex = 0;
+let litChunkIndex = null;
+let soundOutRunning = false;
+
+// ============================================================
+// Persistence
+// ============================================================
+
+function getUnlockedPair(tab) {
+  return parseInt(localStorage.getItem(`ww_unlocked_${tab}`) || "1", 10);
+}
+function setUnlockedPair(tab, pair) {
+  localStorage.setItem(`ww_unlocked_${tab}`, String(pair));
 }
 
 function shuffle(arr) {
@@ -25,16 +63,363 @@ function shuffle(arr) {
   return a;
 }
 
-// ---------- Speech ----------
+function withImageFallback(img) {
+  img.onerror = function () {
+    this.onerror = null;
+    this.src = "images/placeholder.svg";
+  };
+}
+
+// ============================================================
+// Screen management
+// ============================================================
+
+function showScreen(id) {
+  document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+}
+
+// ============================================================
+// Start screen — tabs, Say It button, level grid
+// ============================================================
+
+function renderTabs() {
+  const row = document.getElementById("tabs-row");
+  row.innerHTML = "";
+  TABS.forEach((t) => {
+    const btn = document.createElement("button");
+    btn.className = "tab-btn" + (t.id === currentTab ? " active" : "");
+    btn.textContent = t.label;
+    btn.onclick = () => {
+      currentTab = t.id;
+      renderTabs();
+      renderLevelGrid();
+    };
+    row.appendChild(btn);
+  });
+}
+
+function renderLevelGrid() {
+  const grid = document.getElementById("level-grid");
+  grid.innerHTML = "";
+  const unlockedPair = getUnlockedPair(currentTab);
+  const levels = GAME_LEVELS[currentTab];
+
+  levels.forEach((gl, idx) => {
+    const card = document.createElement("button");
+    const locked = gl.pair > unlockedPair;
+    card.className = "level-card" + (locked ? " locked" : "");
+    const wordsInLevel = WORD_ITEMS.filter((i) => i.tab === gl.tab && i.level === gl.contentLevel);
+    const modeIcon = gl.mode === "listen" ? "🔊" : "🖼️";
+    card.innerHTML = `
+      <div class="level-icon">${locked ? "🔒" : modeIcon}</div>
+      <div class="level-label">${wordsInLevel.map((w) => w.word).join(", ")}</div>
+      <div class="level-mode">${gl.mode === "listen" ? "Hear it" : "See it"}</div>
+    `;
+    if (!locked) {
+      card.onclick = () => {
+        currentGameLevelIdx = idx;
+        startGame();
+      };
+    }
+    grid.appendChild(card);
+  });
+}
+
+document.getElementById("say-it-btn").addEventListener("click", () => {
+  phonicsTab = currentTab;
+  phonicsIndex = 0;
+  showScreen("phonics-screen");
+  renderPhonicsTabLabel();
+  renderPhonics();
+  renderWordStrip();
+});
+
+// ============================================================
+// Quiz flow
+// ============================================================
+
+function startGame() {
+  const gl = GAME_LEVELS[currentTab][currentGameLevelIdx];
+  currentContentLevel = gl.contentLevel;
+  gameMode = gl.mode;
+
+  levelItems = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level <= currentContentLevel);
+  const newWords = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level === currentContentLevel);
+  const reviewPool = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level < currentContentLevel);
+
+  let built = [];
+  newWords.forEach((w) => {
+    for (let i = 0; i < 3; i++) built.push(w);
+  });
+  const reviewCount = Math.min(4, reviewPool.length);
+  built = built.concat(shuffle([...reviewPool]).slice(0, reviewCount));
+  queue = shuffle(built);
+
+  stars = 0;
+  currentIndex = 0;
+
+  showScreen("quiz-screen");
+  loadRound();
+}
+
+function updateProgressBar() {
+  const pct = queue.length ? Math.round((currentIndex / queue.length) * 100) : 0;
+  document.getElementById("progress-fill").style.width = pct + "%";
+  document.getElementById("stars-display").textContent = `⭐ ${stars}`;
+}
+
+function loadRound() {
+  if (currentIndex >= queue.length) {
+    showDone();
+    return;
+  }
+  currentItem = queue[currentIndex];
+  answered = false;
+  roundClean = true;
+  roundWrongs = 0;
+  updateProgressBar();
+
+  const promptArea = document.getElementById("prompt-area");
+  promptArea.innerHTML = "";
+
+  if (gameMode === "listen") {
+    const btn = document.createElement("button");
+    btn.className = "speaker-prompt-btn";
+    btn.textContent = "🔊";
+    btn.onclick = () => speak(currentItem.word);
+    promptArea.appendChild(btn);
+    setTimeout(() => speak(currentItem.word), 300);
+  } else {
+    const img = document.createElement("img");
+    img.className = "prompt-image";
+    img.src = currentItem.image;
+    img.alt = "";
+    withImageFallback(img);
+    promptArea.appendChild(img);
+  }
+
+  renderChoices();
+}
+
+function renderChoices() {
+  const grid = document.getElementById("choices-grid");
+  grid.innerHTML = "";
+
+  const distractPool = levelItems.filter((i) => i.word !== currentItem.word);
+  const distractors = shuffle([...distractPool]).slice(0, 3);
+  const choices = shuffle([currentItem, ...distractors]);
+
+  choices.forEach((choice) => {
+    let el;
+    if (gameMode === "listen") {
+      el = document.createElement("button");
+      el.className = "choice-image-btn";
+      const img = document.createElement("img");
+      img.src = choice.image;
+      img.alt = "";
+      withImageFallback(img);
+      el.appendChild(img);
+    } else {
+      el = document.createElement("button");
+      el.className = "choice-text-btn";
+      el.textContent = choice.word;
+    }
+    el.dataset.word = choice.word;
+    el.onclick = () => handleChoice(el, choice.word);
+    grid.appendChild(el);
+  });
+}
+
+function handleChoice(el, chosenWord) {
+  if (answered) return;
+
+  if (chosenWord === currentItem.word) {
+    answered = true;
+    if (roundClean) stars++;
+    el.classList.add("correct");
+    playCorrectChime();
+    speak(`${currentItem.word}!`);
+    updateProgressBar();
+    setTimeout(advanceRound, 1600);
+  } else {
+    el.classList.add("wrong");
+    el.disabled = true;
+    roundClean = false;
+    roundWrongs++;
+    playWrongChime();
+    speak("Try again!");
+  }
+}
+
+function advanceRound() {
+  currentIndex++;
+  loadRound();
+}
+
+function showDone() {
+  showScreen("done-screen");
+  const gl = GAME_LEVELS[currentTab][currentGameLevelIdx];
+  const threshold = Math.ceil(queue.length * 0.8);
+  const unlockedPair = getUnlockedPair(currentTab);
+
+  document.getElementById("done-score").textContent = `You got ${stars} out of ${queue.length} ⭐`;
+
+  let unlockMsg = "";
+  if (stars >= threshold && gl.pair === unlockedPair) {
+    setUnlockedPair(currentTab, unlockedPair + 1);
+    unlockMsg = "🎉 New level unlocked!";
+  }
+  document.getElementById("done-unlock-msg").textContent = unlockMsg;
+}
+
+document.getElementById("done-continue-btn").addEventListener("click", () => {
+  showScreen("start-screen");
+  renderLevelGrid();
+});
+document.getElementById("quiz-back-btn").addEventListener("click", () => {
+  showScreen("start-screen");
+  renderLevelGrid();
+});
+
+// ============================================================
+// Say It (phonics) — ungated, always available for the whole tab
+// ============================================================
+
+document.getElementById("phonics-back-btn").addEventListener("click", () => {
+  showScreen("start-screen");
+  renderLevelGrid();
+});
+
+function phonicsWords() {
+  return WORD_ITEMS.filter((i) => i.tab === phonicsTab);
+}
+
+function renderPhonicsTabLabel() {
+  const tab = TABS.find((t) => t.id === phonicsTab);
+  document.getElementById("phonics-tab-label").textContent = tab.label;
+}
+
+function renderWordStrip() {
+  const strip = document.getElementById("word-strip");
+  strip.innerHTML = "";
+  phonicsWords().forEach((w, i) => {
+    const d = document.createElement("div");
+    d.className = "strip-item" + (i === phonicsIndex ? " on" : "");
+    const img = document.createElement("img");
+    img.src = w.image;
+    img.alt = "";
+    withImageFallback(img);
+    d.appendChild(img);
+    d.onclick = () => {
+      phonicsIndex = i;
+      litChunkIndex = null;
+      renderPhonics();
+      renderWordStrip();
+    };
+    strip.appendChild(d);
+  });
+}
+
+function currentPhonicsWord() {
+  return phonicsWords()[phonicsIndex];
+}
+
+function wholeWordSpeech(w) {
+  return w.letterByLetter ? w.word.toUpperCase().split("").join(". ") : w.word;
+}
+
+function renderPhonics() {
+  const w = currentPhonicsWord();
+
+  const img = document.getElementById("phonics-image");
+  img.src = w.image;
+  withImageFallback(img);
+
+  const noteEl = document.getElementById("phonics-note");
+  noteEl.textContent = w.note || "";
+  noteEl.style.display = w.note ? "" : "none";
+
+  const chunkRow = document.getElementById("chunk-row");
+  chunkRow.innerHTML = "";
+  w.chunks.forEach((c, i) => {
+    const el = document.createElement("div");
+    el.className = "chunk" + (litChunkIndex === i ? " lit" : "");
+    el.textContent = c;
+    el.onclick = () => tapChunk(i);
+    chunkRow.appendChild(el);
+  });
+
+  document.getElementById("phonics-bubble").textContent =
+    "Tap each colour to hear the sound, then blend them!";
+}
+
+function tapChunk(i) {
+  litChunkIndex = i;
+  renderPhonics();
+  const w = currentPhonicsWord();
+  speak(w.chunks[i], 0.65);
+  setTimeout(() => {
+    if (litChunkIndex === i) {
+      litChunkIndex = null;
+      renderPhonics();
+    }
+  }, 500);
+}
+
+document.getElementById("phonics-say-whole-btn").addEventListener("click", () => {
+  document.getElementById("phonics-bubble").textContent = "Your turn — say it back!";
+  speak(wholeWordSpeech(currentPhonicsWord()), 0.8);
+});
+
+document.getElementById("phonics-sound-out-btn").addEventListener("click", () => {
+  if (soundOutRunning) return;
+  soundOutRunning = true;
+  const w = currentPhonicsWord();
+  const chunks = w.chunks;
+  let i = 0;
+  const step = () => {
+    if (i >= chunks.length) {
+      setTimeout(() => speak(wholeWordSpeech(w), 0.8), 250);
+      soundOutRunning = false;
+      return;
+    }
+    litChunkIndex = i;
+    renderPhonics();
+    speak(chunks[i], 0.6);
+    i++;
+    setTimeout(step, 650);
+  };
+  step();
+});
+
+document.getElementById("phonics-next-btn").addEventListener("click", () => {
+  phonicsIndex = (phonicsIndex + 1) % phonicsWords().length;
+  litChunkIndex = null;
+  renderPhonics();
+  renderWordStrip();
+});
+
+// ============================================================
+// Text-to-speech
+// ============================================================
+
+// Same voice preference list as letterbrain, so both apps sound consistent.
+const PREFERRED_VOICE_NAMES = [
+  "Samantha", "Karen", "Moira", "Fiona", "Tessa", "Victoria",
+  "Google UK English Female", "Google US English",
+];
 let cachedVoice = null;
 function pickVoice() {
   const voices = speechSynthesis.getVoices();
-  cachedVoice =
-    voices.find((v) => /en-IN/i.test(v.lang)) ||
-    voices.find((v) => /en-GB/i.test(v.lang)) ||
-    voices.find((v) => /^en/i.test(v.lang)) ||
-    voices[0] ||
-    null;
+  for (const name of PREFERRED_VOICE_NAMES) {
+    const v = voices.find((v) => v.name === name);
+    if (v) {
+      cachedVoice = v;
+      return cachedVoice;
+    }
+  }
+  cachedVoice = voices.find((v) => /^en/i.test(v.lang)) || voices[0] || null;
   return cachedVoice;
 }
 if ("speechSynthesis" in window) {
@@ -52,188 +437,40 @@ function speak(text, rate = 0.85) {
   speechSynthesis.speak(u);
 }
 
-// ---------- Alpine component ----------
-function wordWorkshop() {
-  return {
-    folders: FOLDERS,
-    folderKeys: Object.keys(FOLDERS),
-    currentFolder: "family",
-    currentMode: "match",
-    bubble: "Pick a folder to start!",
-    mascotBob: false,
-    showProgress: false,
-    progress: loadProgress(),
+// ============================================================
+// Sound effects (Web Audio oscillators)
+// ============================================================
 
-    // Listen & Match state
-    matchOrder: [],
-    matchPtr: 0,
-    matchTarget: null,
-    matchOptions: [],
-    matchDone: 0,
-    feedbackWord: null,
-    feedbackType: null,
-
-    // Say It (phonics) state
-    stripIndex: 0,
-    litChunkIndex: null,
-    soundOutRunning: false,
-
-    init() {
-      this.startRound();
-    },
-
-    get words() {
-      return this.folders[this.currentFolder].words;
-    },
-    get currentWord() {
-      return this.words[this.stripIndex];
-    },
-
-    selectFolder(key) {
-      this.currentFolder = key;
-      this.startRound();
-    },
-    selectMode(mode) {
-      this.currentMode = mode;
-      this.startRound();
-    },
-
-    startRound() {
-      this.stripIndex = 0;
-      this.litChunkIndex = null;
-      this.feedbackWord = null;
-      this.feedbackType = null;
-      if (this.currentMode === "match") {
-        this.matchOrder = shuffle(this.words.map((_, i) => i));
-        this.matchPtr = 0;
-        this.matchDone = 0;
-        this.bubble = "Listen, then tap the picture!";
-        this.nextMatchQuestion();
-      } else {
-        this.bubble = "Tap each colour to hear the sound, then blend them!";
-      }
-    },
-
-    // ---------- Listen & Match ----------
-    nextMatchQuestion() {
-      if (this.matchPtr >= this.matchOrder.length) {
-        this.bubble = "You matched every word in this folder! 🎉";
-        this.matchTarget = null;
-        return;
-      }
-      const idx = this.matchOrder[this.matchPtr];
-      this.matchTarget = this.words[idx];
-      const pool = this.words.filter((_, i) => i !== idx);
-      const distractors = shuffle(pool).slice(0, Math.min(3, pool.length));
-      this.matchOptions = shuffle([this.matchTarget, ...distractors]);
-      setTimeout(() => speak(this.matchTarget.word), 350);
-    },
-
-    replay() {
-      if (this.matchTarget) speak(this.matchTarget.word);
-    },
-
-    pickClass(word) {
-      if (word !== this.feedbackWord) return "";
-      return this.feedbackType;
-    },
-
-    pick(opt) {
-      if (this.feedbackType) return; // ignore taps while feedback is showing
-      this.feedbackWord = opt.word;
-      if (opt.word === this.matchTarget.word) {
-        this.feedbackType = "correct";
-        this.matchDone++;
-        this.markMatched(this.currentFolder, opt.word);
-        this.bob();
-        this.bubble = "Yes! That's the " + this.matchTarget.word + " 🎉";
-        speak("Yes! " + this.matchTarget.word);
-        setTimeout(() => {
-          this.feedbackWord = null;
-          this.feedbackType = null;
-          this.matchPtr++;
-          this.nextMatchQuestion();
-        }, 1100);
-      } else {
-        this.feedbackType = "wrong";
-        this.bubble = "Listen again — try once more!";
-        speak(this.matchTarget.word);
-        setTimeout(() => {
-          this.feedbackWord = null;
-          this.feedbackType = null;
-        }, 400);
-      }
-    },
-
-    bob() {
-      this.mascotBob = false;
-      requestAnimationFrame(() => {
-        this.mascotBob = true;
-        setTimeout(() => (this.mascotBob = false), 700);
-      });
-    },
-
-    // ---------- Say It (phonics) ----------
-    jumpTo(i) {
-      this.stripIndex = i;
-      this.litChunkIndex = null;
-    },
-
-    tapChunk(i) {
-      this.litChunkIndex = i;
-      speak(this.currentWord.chunks[i], 0.65);
-      setTimeout(() => {
-        if (this.litChunkIndex === i) this.litChunkIndex = null;
-      }, 500);
-    },
-
-    wholeWordSpeech() {
-      const w = this.currentWord;
-      return w.letterByLetter ? w.word.toUpperCase().split("").join(". ") : w.word;
-    },
-
-    sayWhole() {
-      this.bubble = "Your turn — say it back!";
-      speak(this.wholeWordSpeech(), 0.8);
-    },
-
-    soundOut() {
-      if (this.soundOutRunning) return;
-      this.soundOutRunning = true;
-      const chunks = this.currentWord.chunks;
-      let i = 0;
-      const step = () => {
-        if (i >= chunks.length) {
-          setTimeout(() => speak(this.wholeWordSpeech(), 0.8), 250);
-          this.soundOutRunning = false;
-          return;
-        }
-        this.litChunkIndex = i;
-        speak(chunks[i], 0.6);
-        i++;
-        setTimeout(step, 650);
-      };
-      step();
-    },
-
-    nextWord() {
-      this.stripIndex = (this.stripIndex + 1) % this.words.length;
-      this.litChunkIndex = null;
-    },
-
-    // ---------- Progress (persisted per folder/word, for parents) ----------
-    markMatched(folderKey, word) {
-      if (!this.progress[folderKey]) this.progress[folderKey] = {};
-      this.progress[folderKey][word] = true;
-      saveProgress(this.progress);
-    },
-    isMatched(folderKey, word) {
-      return !!(this.progress[folderKey] && this.progress[folderKey][word]);
-    },
-    progressCount(folderKey) {
-      const words = this.folders[folderKey].words;
-      const done = words.filter((w) => this.isMatched(folderKey, w.word)).length;
-      return `${done}/${words.length}`;
-    },
-  };
+let audioCtx = null;
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
 }
+function playTone(freqs, durationEach) {
+  const ctx = getAudioCtx();
+  freqs.forEach((freq, i) => {
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.frequency.value = freq;
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    const startTime = ctx.currentTime + i * durationEach;
+    gain.gain.setValueAtTime(0.15, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationEach);
+    osc.start(startTime);
+    osc.stop(startTime + durationEach);
+  });
+}
+function playCorrectChime() {
+  playTone([523, 659, 784, 1047], 0.12);
+}
+function playWrongChime() {
+  playTone([440, 349], 0.18);
+}
+
+// ============================================================
+// Init
+// ============================================================
+
+renderTabs();
+renderLevelGrid();

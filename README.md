@@ -1,70 +1,74 @@
 # Word Workshop
 
-A phonics and vocabulary web app for a pre-reading child who knows letters
-and phonetic sounds but hasn't started reading yet. Two modes per topic:
+A vocabulary quiz app for a pre-reading child, structurally mirroring
+[letterbrain](https://amelabrs.github.io/letterbrain): topic tabs, a
+level grid with locked/unlocked pairs, and a 4-choice picture/word quiz.
+Plus a bonus, ungated **Say It** phonics screen for sounding words out.
 
-- **👂 Listen & Match** — a word is spoken aloud; the child taps the matching
-  picture out of 4 choices.
-- **🗣️ Say It** — the word's picture is shown broken into syllable/sound
-  chunks; tapping a chunk speaks just that piece, "Sound it out" plays them
-  in sequence, "Say the word" blends it into the whole word. No microphone —
-  the app models the word and lets the child repeat it back out loud on
-  their own; there's no speech recognition.
+Plain HTML/CSS/JS, no build step, no framework — deployable to GitHub Pages
+by pushing static files.
 
-Plain HTML/CSS/JS, no build step, with [Alpine.js](https://alpinejs.dev/)
-(loaded via CDN) handling reactivity. Deployable to GitHub Pages by pushing
-static files — see [Deployment](#deployment) below.
+## The quiz (letterbrain-style)
+
+Each topic tab has a **level grid**. Levels come in pairs — one **Listen**
+level (🔊 word spoken aloud → pick the matching picture from 4 choices) and
+one **Read** level (🖼️ picture shown → pick the matching word text from 4
+choices) — covering the same words. Scoring ≥80% on a pair unlocks the next
+pair. Progress is tracked per tab in `localStorage`, so unlocked levels
+persist across sessions (`ww_unlocked_<tab>`).
+
+## Say It (phonics, bonus mode)
+
+Tap the "🗣️ Say It" button on any tab to open an ungated practice screen for
+every word in that tab — no locking, no scoring. Each word is broken into
+syllable/sound chunks; tapping a chunk speaks just that piece, "🐢 Sound it
+out" plays them in sequence, "🔊 Say the word" blends them into the whole
+word. No microphone or speech recognition — the app models the word and lets
+the child repeat it back out loud on their own.
 
 ## Adding content — the folder-based structure
 
-All words live in **`folders.js`**, grouped into topic "folders" (Family,
-Computer Parts, etc.) shown as tabs at the top of the app. This is the only
-file you need to touch to add a new topic or word — `index.html` and
-`app.js` read it at runtime and need no changes.
+All words live in **`folders.js`**, grouped into topic tabs (Family,
+Computer Parts, Computer Types, Places, Plants). This is the only file you
+need to touch to add a new topic or word — `index.html` and `app.js` read it
+at runtime and need no changes.
 
-Each folder:
-
+Each tab in `TABS`:
 ```js
-family: {
-  label: "Family",              // shown on the folder tab
-  words: [
-    { word: "mother", icon: "👩", chunks: ["mo", "ther"] },
-    // ...
-  ]
-}
+{ id: "family", label: "Family" }
 ```
 
-Each word:
+Each word in `WORD_ITEMS`:
+```js
+{ word: "Mother", tab: "family", image: "images/mother.jpeg", level: 1, chunks: ["Mo", "ther"] }
+```
 
 | Field | Required | Description |
 |-------|----------|--------------|
-| `word` | yes | The word as spoken and matched against (lowercase) |
-| `icon` | yes | An emoji used as the picture in both modes |
-| `chunks` | yes | Ordered syllable/sound pieces for "Say It" mode — must join back into `word` when concatenated |
-| `letterByLetter` | no | Set `true` for acronyms (e.g. `cpu`, `ups`) — "Say the word" spells the letters instead of blending syllables |
-| `note` | no | Short caption shown under the icon in "Say It" mode (used for acronyms to explain what they stand for) |
+| `word` | yes | The word as spoken/shown/matched against |
+| `tab` | yes | Which `TABS` entry this word belongs to |
+| `image` | yes | Path to a photo. If the file doesn't exist yet, the UI falls back to `images/placeholder.svg` automatically — just drop a real photo at this exact path whenever it's ready, no code changes needed |
+| `level` | yes | Progression grouping within its tab — words sharing a level are introduced together in one unlockable pair (see below) |
+| `chunks` | yes | Ordered syllable/sound pieces for Say It mode — must join back into `word` when concatenated |
+| `letterByLetter` | no | Set `true` for acronyms (e.g. `CPU`, `UPS`) — "Say the word" spells the letters instead of blending syllables |
+| `note` | no | Short caption shown under the picture in Say It mode (used for acronyms, to explain what they stand for) |
 
-**To add a new topic**: add a new key to the `FOLDERS` object in `folders.js`
-with a `label` and a `words` array. It appears automatically as a new tab.
+**To add a new topic**: add a new entry to `TABS`, then give some
+`WORD_ITEMS` that `tab` id. It appears automatically as a new tab, fully
+wired into both the quiz and Say It.
 
-**To add a word to an existing topic**: append an object to that folder's
-`words` array.
+**To add a word to an existing topic**: append an object to `WORD_ITEMS`
+with that tab's id and a `level` (reuse an existing level number to group it
+with other words in the same pair, or use the next number to make it a new
+pair unlocked after the others).
 
-## Progress tracking
-
-Every word a child matches correctly in **Listen & Match** is recorded in
-`localStorage` (key `ww_progress`), per folder, and persists across browser
-sessions/reloads. Tap the 📊 button in the header to open a progress panel
-showing, per folder, how many words have been matched at least once and
-which ones — so a parent can check progress without watching a session.
-
-This is deliberately simple: it tracks "has matched at least once," not
-scores, streaks, or timestamps. There's no lock/unlock gating — every word
-in a folder is always available to practice.
+**Photos**: real photos, not icons/emoji. Some words are still waiting on a
+photo (using the generic placeholder until then) — check `folders.js` for
+which `image` paths don't have a matching file yet in `images/`.
 
 ## Local development
 
-No build step, no dependencies to install. Just serve the directory statically:
+No build step, no dependencies to install:
 
 ```bash
 cd "English words"
@@ -72,32 +76,8 @@ python3 -m http.server 8080
 # open http://localhost:8080
 ```
 
-Opening `index.html` directly via `file://` also works, except that
-`speechSynthesis` voice selection can behave inconsistently across browsers
-in that mode — serving over `http://` (even locally) is more reliable.
-
 ## Deployment
 
-To deploy to GitHub Pages at `amelabrs.github.io/word-workshop`:
-
-1. Create a new **public** GitHub repo named `word-workshop` (via
-   `gh repo create word-workshop --public --source=. --remote=origin` from
-   inside this folder, or via github.com).
-2. Push this folder's contents to it:
-   ```bash
-   git init
-   git add .
-   git commit -m "Initial Word Workshop app"
-   git branch -M main
-   git remote add origin https://github.com/amelabrs/word-workshop.git
-   git push -u origin main
-   ```
-3. The included `.github/workflows/pages.yml` auto-deploys on every push to
-   `main` — enable it once by going to the repo's **Settings → Pages** and
-   setting **Source** to "GitHub Actions" (one-time setup; after that, every
-   push to `main` redeploys automatically).
-4. The site will be live at `https://amelabrs.github.io/word-workshop/`
-   a minute or two after the first push.
-
-I haven't run any of the git/GitHub steps above — say the word when you're
-ready and I'll run them (or run them yourself if you'd rather drive that part).
+Live at **https://amelabrs.github.io/word-workshop/**, deployed via
+`.github/workflows/pages.yml` — any push to `main` on
+`github.com/amelabrs/word-workshop` auto-redeploys within a minute or two.

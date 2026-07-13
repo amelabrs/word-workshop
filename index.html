@@ -10,116 +10,72 @@
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="images/icon-192.svg">
 </head>
-<body x-data="wordWorkshop()" x-cloak>
+<body>
 
+<div id="start-screen" class="screen active">
   <div class="header">
-    <div class="mascot" :class="{ bobbing: mascotBob }">🤖</div>
+    <div class="mascot" id="mascot">🤖</div>
     <div class="title-block">
       <h1>Word Workshop</h1>
       <p>listen &middot; point &middot; say it back</p>
     </div>
-    <button class="progress-toggle" @click="showProgress = !showProgress" aria-label="View progress">📊</button>
   </div>
 
-  <div class="bubble" x-text="bubble"></div>
+  <div class="tabs" id="tabs-row"></div>
 
-  <div class="folder-row">
-    <template x-for="key in folderKeys" :key="key">
-      <button class="folder-tab" :class="{ active: currentFolder === key }" @click="selectFolder(key)">
-        <span x-text="'📁 ' + folders[key].label"></span>
-        <span class="folder-progress" x-text="progressCount(key)"></span>
-      </button>
-    </template>
+  <button class="say-it-btn" id="say-it-btn">🗣️ Say It — practice this folder's words</button>
+
+  <div class="level-grid" id="level-grid"></div>
+</div>
+
+<div id="quiz-screen" class="screen">
+  <div class="quiz-header">
+    <button id="quiz-back-btn" class="icon-btn">←</button>
+    <div class="progress-bar"><div id="progress-fill" class="progress-fill"></div></div>
+    <div id="stars-display" class="stars-display">⭐ 0</div>
   </div>
 
-  <div class="mode-row">
-    <button class="mode-btn" :class="{ active: currentMode === 'match' }" @click="selectMode('match')">👂 Listen &amp; Match</button>
-    <button class="mode-btn" :class="{ active: currentMode === 'phonics' }" @click="selectMode('phonics')">🗣️ Say It</button>
+  <div id="prompt-area" class="prompt-area"></div>
+
+  <div id="choices-grid" class="choices-grid"></div>
+</div>
+
+<div id="done-screen" class="screen">
+  <div class="done-card">
+    <h2 id="done-title">Great job!</h2>
+    <p id="done-score" class="done-score"></p>
+    <p id="done-unlock-msg" class="done-unlock-msg"></p>
+    <button id="done-continue-btn" class="primary-btn">Continue</button>
   </div>
+</div>
+
+<div id="phonics-screen" class="screen">
+  <div class="quiz-header">
+    <button id="phonics-back-btn" class="icon-btn">←</button>
+    <div id="phonics-tab-label" class="phonics-tab-label"></div>
+  </div>
+
+  <div class="bubble" id="phonics-bubble">Tap each colour to hear the sound, then blend them!</div>
 
   <div class="stage">
-
-    <!-- ===== Listen & Match ===== -->
-    <template x-if="currentMode === 'match' && matchTarget">
-      <div>
-        <div class="replay-row">
-          <button class="replay-btn" @click="replay()">🔊</button>
-        </div>
-        <div class="card-grid">
-          <template x-for="opt in matchOptions" :key="opt.word">
-            <div class="word-card" :class="pickClass(opt.word)" @click="pick(opt)" x-text="opt.icon"></div>
-          </template>
-        </div>
-        <div class="progress-row">
-          <template x-for="(w, i) in words" :key="w.word">
-            <div class="dot-pip" :class="{ done: i < matchDone }"></div>
-          </template>
-        </div>
+    <div class="phonics-card">
+      <img id="phonics-image" class="phonics-image" alt="">
+      <p id="phonics-note" class="phonics-note"></p>
+      <div class="chunk-row" id="chunk-row"></div>
+      <div class="phonics-buttons">
+        <button class="pb slow" id="phonics-sound-out-btn">🐢 Sound it out</button>
+        <button class="pb whole" id="phonics-say-whole-btn">🔊 Say the word</button>
+        <button class="pb next" id="phonics-next-btn">Next word ➡️</button>
       </div>
-    </template>
-
-    <template x-if="currentMode === 'match' && !matchTarget">
-      <div class="phonics-card">
-        <div class="phonics-icon">🏆</div>
-        <h2>All done!</h2>
-        <button class="pb whole" style="margin-top:18px" @click="startRound()">🔁 Play again</button>
-      </div>
-    </template>
-
-    <!-- ===== Say It (phonics) ===== -->
-    <template x-if="currentMode === 'phonics'">
-      <div class="phonics-card">
-        <div class="phonics-icon" x-text="currentWord.icon"></div>
-        <p class="phonics-note" x-show="currentWord.note" x-text="currentWord.note"></p>
-        <div class="chunk-row">
-          <template x-for="(c, i) in currentWord.chunks" :key="i">
-            <div class="chunk" :class="{ lit: litChunkIndex === i }" @click="tapChunk(i)" x-text="c"></div>
-          </template>
-        </div>
-        <div class="phonics-buttons">
-          <button class="pb slow" @click="soundOut()">🐢 Sound it out</button>
-          <button class="pb whole" @click="sayWhole()">🔊 Say the word</button>
-          <button class="pb next" @click="nextWord()">Next word ➡️</button>
-        </div>
-      </div>
-    </template>
-
-  </div>
-
-  <div class="word-strip">
-    <template x-for="(w, i) in words" :key="w.word">
-      <div class="strip-item" :class="{ on: currentMode === 'phonics' && i === stripIndex }" @click="currentMode === 'phonics' && jumpTo(i)" x-text="w.icon"></div>
-    </template>
-  </div>
-
-  <footer>Works best in Chrome or Safari with sound on. Tap any icon or chunk to hear it again — there's no wrong amount of replaying.</footer>
-
-  <!-- ===== Progress panel (parent view) ===== -->
-  <div class="progress-overlay" x-show="showProgress" x-cloak @click.self="showProgress = false">
-    <div class="progress-panel">
-      <div class="progress-panel-header">
-        <h2>Progress</h2>
-        <button class="icon-btn" @click="showProgress = false">✖</button>
-      </div>
-      <template x-for="key in folderKeys" :key="key">
-        <div class="progress-folder">
-          <h3 x-text="folders[key].label + ' — ' + progressCount(key)"></h3>
-          <div class="progress-word-list">
-            <template x-for="w in folders[key].words" :key="w.word">
-              <span class="progress-word" :class="{ matched: isMatched(key, w.word) }">
-                <span x-text="w.icon"></span>
-                <span x-text="w.word"></span>
-                <span x-show="isMatched(key, w.word)">✓</span>
-              </span>
-            </template>
-          </div>
-        </div>
-      </template>
     </div>
   </div>
 
-  <script src="folders.js"></script>
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-  <script src="app.js"></script>
+  <div class="word-strip" id="word-strip"></div>
+</div>
+
+<footer>Works best in Chrome or Safari with sound on. Tap any picture or chunk to hear it again — there's no wrong amount of replaying.</footer>
+
+<script src="folders.js"></script>
+<script src="app.js"></script>
 </body>
 </html>
