@@ -54,8 +54,8 @@ const WORD_ITEMS = [
   { word: "Smartphone", tab: "types", image: "images/smartphone.jpg", level: 3, chunks: ["Smart", "phone"] },
 
   // ---- Places ----
-  { word: "Home", tab: "places", image: "images/home.jpg", level: 1, chunks: ["Home"] },
-  { word: "School", tab: "places", image: "images/school.jpg", level: 1, chunks: ["School"] },
+  { word: "Home", tab: "places", image: "images/house.webp", level: 1, chunks: ["Home"] },
+  { word: "School", tab: "places", image: "images/school.avif", level: 1, chunks: ["School"] },
   { word: "Hospital", tab: "places", image: "images/hospital.jpg", level: 2, chunks: ["Hos", "pi", "tal"] },
   { word: "Bank", tab: "places", image: "images/bank.jpg", level: 2, chunks: ["Bank"] },
   { word: "Airport", tab: "places", image: "images/airport.jpg", level: 3, chunks: ["Air", "port"] },
