@@ -8,6 +8,12 @@ phonics screen for sounding words out.
 Plain HTML/CSS/JS, no build step, no framework — deployable to GitHub Pages
 by pushing static files.
 
+**Theme:** "Dino Adventure" — jungle green background, lava-orange CTAs,
+sunbeam-yellow accents, T-Rex mascot. Design spec in
+`design_handoff_dino_adventure/README.md`. All colors/fonts live in
+`style.css` (mostly via `:root` custom properties); no HTML/JS structure
+changed to apply it, so re-theming again later is a `style.css`-only job.
+
 ## The quiz (letterbrain-style)
 
 Each topic tab has a **level grid**. Levels come in pairs — one **Listen**

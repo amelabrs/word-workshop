@@ -6,18 +6,21 @@
 <title>Word Workshop</title>
 <link rel="manifest" href="manifest.json">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 <link rel="icon" href="images/icon-192.svg">
 </head>
 <body>
 
+<div class="watermark watermark-1" aria-hidden="true">🌴</div>
+<div class="watermark watermark-2" aria-hidden="true">🚚</div>
+
 <div id="start-screen" class="screen active">
   <div class="header">
-    <div class="mascot" id="mascot">🤖</div>
+    <div class="mascot" id="mascot">🦖</div>
     <div class="title-block">
       <h1>Word Workshop</h1>
-      <p>listen &middot; point &middot; say it back</p>
+      <p>roar it &middot; spot it &middot; say it back</p>
     </div>
   </div>
 
@@ -42,6 +45,7 @@
 
 <div id="done-screen" class="screen">
   <div class="done-card">
+    <div class="done-mascot">🦖</div>
     <h2 id="done-title">Great job!</h2>
     <p id="done-score" class="done-score"></p>
     <p id="done-unlock-msg" class="done-unlock-msg"></p>

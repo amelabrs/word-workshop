@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Nunito:wght@600;700;800&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+  html,body{margin:0; padding:0; height:100%;}
+  a{color:#FFC93C;} a:hover{color:#FFD968;}
+  @keyframes wwBob{ 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-6px) rotate(2deg)} }
+</style>
+</helmet>
+
+<div style="min-height:100vh; width:100%; background:linear-gradient(180deg,#1B7A3E 0%,#0F5C2C 60%,#0B4A22 100%); color:#0F5C2C; font-family:'Nunito',sans-serif; display:flex; flex-direction:column; align-items:center; padding:18px 14px 40px; position:relative; overflow-x:hidden;">
+
+  <div style="position:fixed; top:-10px; right:-14px; font-size:130px; opacity:0.14; pointer-events:none;">🌴</div>
+  <div style="position:fixed; bottom:-16px; left:-14px; font-size:110px; opacity:0.14; pointer-events:none;">🚚</div>
+
+  <sc-if value="{{ isStart }}" hint-placeholder-val="{{ true }}">
+  <div style="width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center;">
+
+    <div style="width:100%; display:flex; align-items:center; gap:14px; margin-bottom:16px; position:relative;">
+      <div style="font-size:44px; background:#FFC93C; border-radius:50%; width:74px; height:74px; display:flex; align-items:center; justify-content:center; box-shadow:0 5px 0 #C98A0A; border:4px solid #1B7A3E; flex-shrink:0; animation: wwBob 3s ease-in-out infinite;">🦖</div>
+      <div style="flex:1;">
+        <h1 style="font-family:'Baloo 2',sans-serif; font-weight:800; margin:0; font-size:28px; color:#fff; text-shadow:0 3px 0 #0F5C2C;">Word Workshop</h1>
+        <p style="margin:2px 0 0; font-size:13px; font-weight:700; color:#BFF2CE;">roar it &middot; spot it &middot; say it back</p>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center; width:100%; margin-bottom:14px;">
+      <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="5">
+        <button onClick="{{ t.onClick }}" style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; padding:9px 16px; border-radius:12px; border:none; cursor:pointer; background:{{ t.bg }}; color:{{ t.color }}; box-shadow:{{ t.shadow }};">{{ t.label }}</button>
+      </sc-for>
+    </div>
+
+    <button onClick="{{ openSayIt }}" style="width:100%; font-family:'Baloo 2',sans-serif; font-weight:700; font-size:15px; padding:12px; border-radius:14px; border:none; cursor:pointer; background:#FF6B35; color:#fff; box-shadow:0 4px 0 #C4471B; margin-bottom:18px;">🗣️ Say It — practice this folder's words</button>
+
+    <div style="width:100%; display:grid; grid-template-columns:repeat(2, 1fr); gap:12px;">
+      <sc-for list="{{ levels }}" as="lvl" hint-placeholder-count="4">
+        <button onClick="{{ lvl.onClick }}" style="background:#FFFFFF; border:none; border-radius:16px; padding:16px 10px; text-align:center; cursor:pointer; box-shadow:0 5px 0 rgba(0,0,0,0.25);">
+          <div style="font-size:2rem;">{{ lvl.icon }}</div>
+          <div style="font-weight:700; font-family:'Baloo 2',sans-serif; color:#0F5C2C; margin-top:6px; font-size:0.85rem;">{{ lvl.label }}</div>
+          <div style="font-size:0.75rem; color:#6B8B76; margin-top:2px;">{{ lvl.modeLabel }}</div>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+  <div style="width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; width:100%;">
+      <button onClick="{{ backToStart }}" style="border:none; background:#FFFFFF; color:#0F5C2C; font-size:1.2rem; border-radius:50%; width:40px; height:40px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,0.25); flex-shrink:0;">←</button>
+      <div style="flex:1; height:12px; background:rgba(255,255,255,0.25); border-radius:999px; overflow:hidden;">
+        <div style="height:100%; width:{{ progressPct }}%; background:#FFC93C; transition:width 0.3s ease;"></div>
+      </div>
+      <div style="color:#fff; font-weight:800; font-family:'Baloo 2',sans-serif; white-space:nowrap;">{{ starsText }}</div>
+    </div>
+
+    <div style="display:flex; justify-content:center; margin-bottom:24px; width:100%;">
+      <sc-if value="{{ promptIsSpeaker }}" hint-placeholder-val="{{ true }}">
+        <button onClick="{{ speakPrompt }}" style="font-size:5rem; background:#FFFFFF; border:none; border-radius:50%; width:160px; height:160px; cursor:pointer; box-shadow:0 6px 0 rgba(0,0,0,0.3);">🔊</button>
+      </sc-if>
+      <sc-if value="{{ promptIsImage }}" hint-placeholder-val="{{ false }}">
+        <img src="{{ promptImage }}" alt="" style="width:220px; height:220px; object-fit:cover; background:#FFFFFF; border-radius:20px; box-shadow:0 6px 0 rgba(0,0,0,0.3);"/>
+      </sc-if>
+    </div>
+
+    <div style="width:100%; display:grid; grid-template-columns:repeat(2, 1fr); gap:14px;">
+      <sc-for list="{{ choices }}" as="c" hint-placeholder-count="4">
+        <button onClick="{{ c.onClick }}" disabled="{{ c.disabled }}" style="border:none; border-radius:16px; background:{{ c.bg }}; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,0.25); padding:8px; outline:{{ c.outline }}; opacity:{{ c.opacity }};">
+          <sc-if value="{{ c.isImage }}" hint-placeholder-val="{{ true }}">
+            <img src="{{ c.image }}" alt="" style="width:100%; aspect-ratio:1; object-fit:cover; border-radius:10px;"/>
+          </sc-if>
+          <sc-if value="{{ c.isText }}" hint-placeholder-val="{{ false }}">
+            <div style="font-family:'Baloo 2',sans-serif; font-size:2rem; font-weight:700; color:#0F5C2C; padding:24px 10px;">{{ c.word }}</div>
+          </sc-if>
+        </button>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isDone }}" hint-placeholder-val="{{ false }}">
+  <div style="width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center;">
+    <div style="background:#FFFFFF; border-radius:22px; padding:30px 20px; text-align:center; margin-top:60px; box-shadow:0 6px 0 rgba(0,0,0,0.3); width:100%;">
+      <div style="font-size:48px; margin-bottom:6px;">🦖</div>
+      <h2 style="font-family:'Baloo 2',sans-serif; font-weight:800; margin:0; color:#1B7A3E;">Great job!</h2>
+      <p style="font-size:1.3rem; color:#0F5C2C; font-weight:700;">{{ doneScore }}</p>
+      <p style="font-size:1.1rem; color:#1B7A3E; font-weight:800; min-height:1.4em;">{{ doneUnlockMsg }}</p>
+      <button onClick="{{ doneContinue }}" style="border:none; background:#FF6B35; color:#fff; font-family:'Baloo 2',sans-serif; font-size:1.1rem; font-weight:700; padding:12px 28px; border-radius:999px; cursor:pointer; margin-top:10px; box-shadow:0 4px 0 #C4471B;">Continue</button>
+    </div>
+  </div>
+  </sc-if>
+
+  <sc-if value="{{ isPhonics }}" hint-placeholder-val="{{ false }}">
+  <div style="width:100%; max-width:640px; display:flex; flex-direction:column; align-items:center;">
+    <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; width:100%;">
+      <button onClick="{{ backToStart }}" style="border:none; background:#FFFFFF; color:#0F5C2C; font-size:1.2rem; border-radius:50%; width:40px; height:40px; cursor:pointer; box-shadow:0 3px 0 rgba(0,0,0,0.25); flex-shrink:0;">←</button>
+      <div style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:18px; color:#fff;">{{ phonicsTabLabel }}</div>
+    </div>
+
+    <div style="background:#FFFFFF; border-radius:18px; padding:14px 18px; width:100%; font-family:'Baloo 2',sans-serif; font-size:18px; color:#0F5C2C; box-shadow:0 4px 0 rgba(0,0,0,0.2); margin-bottom:18px; text-align:center; min-height:28px;">{{ phonicsBubble }}</div>
+
+    <div style="width:100%;">
+      <div style="background:#FFFFFF; border-radius:26px; padding:30px 20px; text-align:center; box-shadow:0 5px 0 rgba(0,0,0,0.25);">
+        <img src="{{ phonicsImage }}" alt="" style="width:180px; height:180px; object-fit:cover; border-radius:20px; margin-bottom:6px;"/>
+        <p style="color:#6B8B76; margin:0 0 4px; font-weight:700; display:{{ phonicsNoteDisplay }};">{{ phonicsNote }}</p>
+        <div style="display:flex; justify-content:center; gap:8px; flex-wrap:wrap; margin:18px 0 22px;">
+          <sc-for list="{{ chunks }}" as="ch" hint-placeholder-count="2">
+            <div onClick="{{ ch.onClick }}" style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:34px; padding:8px 16px; border-radius:14px; cursor:pointer; color:white; background:{{ ch.bg }}; transform:{{ ch.transform }}; box-shadow:{{ ch.litShadow }};">{{ ch.text }}</div>
+          </sc-for>
+        </div>
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+          <button onClick="{{ soundOutClick }}" style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; padding:12px 18px; border-radius:16px; border:none; cursor:pointer; color:white; background:#3E9EDB; box-shadow:0 4px 0 #2971A0;">🐢 Sound it out</button>
+          <button onClick="{{ sayWholeClick }}" style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; padding:12px 18px; border-radius:16px; border:none; cursor:pointer; color:white; background:#1B7A3E; box-shadow:0 4px 0 #0F5C2C;">🔊 Say the word</button>
+          <button onClick="{{ nextPhonicsWord }}" style="font-family:'Baloo 2',sans-serif; font-weight:700; font-size:14px; padding:12px 18px; border-radius:16px; border:none; cursor:pointer; color:#5A4400; background:#FFC93C; box-shadow:0 4px 0 #C98A0A;">Next word ➡️</button>
+        </div>
+      </div>
+    </div>
+
+    <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-top:26px; width:100%;">
+      <sc-for list="{{ strip }}" as="s" hint-placeholder-count="5">
+        <div onClick="{{ s.onClick }}" style="width:52px; height:52px; border-radius:14px; overflow:hidden; box-shadow:0 3px 0 rgba(0,0,0,0.2); cursor:pointer; border:3px solid {{ s.borderColor }};">
+          <img src="{{ s.image }}" alt="" style="width:100%; height:100%; object-fit:cover;"/>
+        </div>
+      </sc-for>
+    </div>
+  </div>
+  </sc-if>
+
+  <footer style="margin-top:30px; font-size:12px; color:#BFF2CE; text-align:center; max-width:520px;">Works best in Chrome or Safari with sound on. Tap any picture or chunk to hear it again — there's no wrong amount of replaying.</footer>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  static TABS = [
+    { id: "family", label: "Family" },
+    { id: "computer", label: "Computer Parts" },
+    { id: "types", label: "Computer Types" },
+    { id: "places", label: "Places" },
+    { id: "plants", label: "Plants" },
+  ];
+
+  static WORD_ITEMS = [
+    { word: "Mother", tab: "family", image: "mother.jpg", level: 1, chunks: ["Mo", "ther"] },
+    { word: "Father", tab: "family", image: "father.jpeg", level: 1, chunks: ["Fa", "ther"] },
+    { word: "Grandfather", tab: "family", image: "grandfather.jpg", level: 2, chunks: ["Grand", "fa", "ther"] },
+    { word: "Grandmother", tab: "family", image: "grandmother.jpg", level: 2, chunks: ["Grand", "mo", "ther"] },
+    { word: "Sister", tab: "family", image: "sister.jpg", level: 3, chunks: ["Sis", "ter"] },
+    { word: "Brother", tab: "family", image: "brother.jpg", level: 3, chunks: ["Bro", "ther"] },
+    { word: "Baby", tab: "family", image: "baby.jpg", level: 4, chunks: ["Ba", "by"] },
+    { word: "Monitor", tab: "computer", image: "monitor.jpg", level: 1, chunks: ["Mo", "ni", "tor"] },
+    { word: "Keyboard", tab: "computer", image: "keyboard.jpg", level: 1, chunks: ["Key", "board"] },
+    { word: "Mouse", tab: "computer", image: "mouse.jpg", level: 1, chunks: ["Mouse"] },
+    { word: "Speaker", tab: "computer", image: "speaker.jpg", level: 2, chunks: ["Spea", "ker"] },
+    { word: "Printer", tab: "computer", image: "printer.jpeg", level: 2, chunks: ["Prin", "ter"] },
+    { word: "CPU", tab: "computer", image: "CPU.jpg", level: 3, chunks: ["C", "P", "U"], letterByLetter: true, note: "the brain of the computer" },
+    { word: "UPS", tab: "computer", image: "ups.jpg", level: 3, chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
+    { word: "Computer", tab: "types", image: "computer.jpg", level: 1, chunks: ["Com", "pu", "ter"] },
+    { word: "Laptop", tab: "types", image: "laptop.jpg", level: 1, chunks: ["Lap", "top"] },
+    { word: "Desktop", tab: "types", image: "desktop.jpg", level: 2, chunks: ["Desk", "top"] },
+    { word: "Tablet", tab: "types", image: "tablet.jpg", level: 2, chunks: ["Ta", "blet"] },
+    { word: "Smartphone", tab: "types", image: "smartphone.jpg", level: 3, chunks: ["Smart", "phone"] },
+    { word: "Home", tab: "places", image: "house.webp", level: 1, chunks: ["Home"] },
+    { word: "School", tab: "places", image: "school.avif", level: 1, chunks: ["School"] },
+    { word: "Hospital", tab: "places", image: "hospital.avif", level: 2, chunks: ["Hos", "pi", "tal"] },
+    { word: "Bank", tab: "places", image: "bank.jpg", level: 2, chunks: ["Bank"] },
+    { word: "Airport", tab: "places", image: "airport.webp", level: 3, chunks: ["Air", "port"] },
+    { word: "Flower", tab: "plants", image: "flower.jpg", level: 1, chunks: ["Flow", "er"] },
+    { word: "Leaf", tab: "plants", image: "leaf.png", level: 1, chunks: ["Leaf"] },
+    { word: "Stem", tab: "plants", image: "stem.jpeg", level: 2, chunks: ["Stem"] },
+    { word: "Root", tab: "plants", image: "root.jpeg", level: 2, chunks: ["Root"] },
+  ];
+
+  static CHUNK_COLORS = ["#1B7A3E", "#3E9EDB", "#FF6B35", "#8B5E34", "#FFC93C", "#2FA88A"];
+
+  state = {
+    screen: "start",
+    currentTab: Component.TABS[0].id,
+    currentGameLevelIdx: 0,
+    gameMode: "listen",
+    levelItems: [],
+    queue: [],
+    queueLength: 0,
+    currentIndex: 0,
+    currentItem: null,
+    stars: 0,
+    answered: false,
+    roundClean: true,
+    choiceList: [],
+    choiceStatus: {},
+    phonicsTab: Component.TABS[0].id,
+    phonicsIndex: 0,
+    litChunkIndex: null,
+    soundOutRunning: false,
+    phonicsBubble: "Tap each colour to hear the sound, then blend them!",
+  };
+
+  constructor(props) {
+    super(props);
+    this.gameLevelsAll = this.buildGameLevels();
+    this.cachedVoice = null;
+    this.audioCtx = null;
+    if ("speechSynthesis" in window) {
+      speechSynthesis.onvoiceschanged = () => this.pickVoice();
+      this.pickVoice();
+    }
+  }
+
+  buildGameLevels() {
+    const out = {};
+    Component.TABS.forEach((t) => (out[t.id] = []));
+    Component.TABS.forEach((t) => {
+      const levels = [...new Set(Component.WORD_ITEMS.filter((i) => i.tab === t.id).map((i) => i.level))].sort((a, b) => a - b);
+      levels.forEach((contentLevel, idx) => {
+        const pair = idx + 1;
+        out[t.id].push({ tab: t.id, contentLevel, mode: "listen", pair });
+        out[t.id].push({ tab: t.id, contentLevel, mode: "read", pair });
+      });
+    });
+    return out;
+  }
+
+  shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+  }
+
+  selectTab(id) {
+    this.setState({ currentTab: id });
+  }
+
+  openSayIt() {
+    this.setState({ screen: "phonics", phonicsTab: this.state.currentTab, phonicsIndex: 0, litChunkIndex: null });
+  }
+
+  backToStart() {
+    this.setState({ screen: "start" });
+  }
+
+  startGame(idx) {
+    const gl = this.gameLevelsAll[this.state.currentTab][idx];
+    const contentLevel = gl.contentLevel;
+    const gameMode = gl.mode;
+    const levelItems = Component.WORD_ITEMS.filter((i) => i.tab === this.state.currentTab);
+    const newWords = Component.WORD_ITEMS.filter((i) => i.tab === this.state.currentTab && i.level === contentLevel);
+    const reviewPool = Component.WORD_ITEMS.filter((i) => i.tab === this.state.currentTab && i.level < contentLevel);
+
+    let built = [];
+    newWords.forEach((w) => {
+      for (let i = 0; i < 3; i++) built.push(w);
+    });
+    const reviewCount = Math.min(4, reviewPool.length);
+    built = built.concat(this.shuffle([...reviewPool]).slice(0, reviewCount));
+    const queue = this.shuffle(built);
+
+    this.setState({
+      screen: "quiz",
+      currentGameLevelIdx: idx,
+      gameMode,
+      levelItems,
+      queue,
+      queueLength: queue.length,
+      stars: 0,
+      currentIndex: 0,
+    }, () => this.loadRound());
+  }
+
+  loadRound() {
+    if (this.state.currentIndex >= this.state.queue.length) {
+      this.showDone();
+      return;
+    }
+    const currentItem = this.state.queue[this.state.currentIndex];
+    const distractPool = this.state.levelItems.filter((i) => i.word !== currentItem.word);
+    const distractors = this.shuffle([...distractPool]).slice(0, 3);
+    const choiceList = this.shuffle([currentItem, ...distractors]);
+
+    this.setState({
+      currentItem,
+      answered: false,
+      roundClean: true,
+      choiceList,
+      choiceStatus: {},
+    });
+
+    if (this.state.gameMode === "listen") {
+      setTimeout(() => this.speak(currentItem.word), 300);
+    }
+  }
+
+  speakPrompt() {
+    if (this.state.currentItem) this.speak(this.state.currentItem.word);
+  }
+
+  handleChoice(chosenWord) {
+    if (this.state.answered) return;
+    const currentItem = this.state.currentItem;
+
+    if (chosenWord === currentItem.word) {
+      const stars = this.state.roundClean ? this.state.stars + 1 : this.state.stars;
+      this.setState((s) => ({
+        answered: true,
+        stars,
+        choiceStatus: { ...s.choiceStatus, [chosenWord]: "correct" },
+      }));
+      this.playCorrectChime();
+      this.speak(`${currentItem.word}!`);
+      setTimeout(() => this.advanceRound(), 1600);
+    } else {
+      this.setState((s) => ({
+        roundClean: false,
+        choiceStatus: { ...s.choiceStatus, [chosenWord]: "wrong" },
+      }));
+      this.playWrongChime();
+      this.speak("Try again!");
+    }
+  }
+
+  advanceRound() {
+    this.setState({ currentIndex: this.state.currentIndex + 1 }, () => this.loadRound());
+  }
+
+  showDone() {
+    this.setState({ screen: "done" });
+  }
+
+  doneContinue() {
+    this.setState({ screen: "start" });
+  }
+
+  selectPhonicsWord(i) {
+    this.setState({ phonicsIndex: i, litChunkIndex: null });
+  }
+
+  phonicsWords() {
+    return Component.WORD_ITEMS.filter((i) => i.tab === this.state.phonicsTab);
+  }
+
+  currentPhonicsWord() {
+    return this.phonicsWords()[this.state.phonicsIndex] || this.phonicsWords()[0];
+  }
+
+  wholeWordSpeech(w) {
+    return w.letterByLetter ? w.word.toUpperCase().split("").join(". ") : w.word;
+  }
+
+  tapChunk(i) {
+    this.setState({ litChunkIndex: i });
+    const w = this.currentPhonicsWord();
+    this.speak(w.chunks[i], 0.65);
+    setTimeout(() => {
+      if (this.state.litChunkIndex === i) this.setState({ litChunkIndex: null });
+    }, 500);
+  }
+
+  sayWholeClick() {
+    this.setState({ phonicsBubble: "Your turn — say it back!" });
+    this.speak(this.wholeWordSpeech(this.currentPhonicsWord()), 0.8);
+  }
+
+  soundOutClick() {
+    if (this.state.soundOutRunning) return;
+    this.state.soundOutRunning = true;
+    const w = this.currentPhonicsWord();
+    const chunks = w.chunks;
+    let i = 0;
+    const step = () => {
+      if (i >= chunks.length) {
+        setTimeout(() => this.speak(this.wholeWordSpeech(w), 0.8), 250);
+        this.state.soundOutRunning = false;
+        return;
+      }
+      this.setState({ litChunkIndex: i });
+      this.speak(chunks[i], 0.6);
+      i++;
+      setTimeout(step, 650);
+    };
+    step();
+  }
+
+  nextPhonicsWord() {
+    const words = this.phonicsWords();
+    this.setState({ phonicsIndex: (this.state.phonicsIndex + 1) % words.length, litChunkIndex: null, phonicsBubble: "Tap each colour to hear the sound, then blend them!" });
+  }
+
+  pickVoice() {
+    const names = ["Samantha", "Karen", "Moira", "Fiona", "Tessa", "Victoria", "Google UK English Female", "Google US English"];
+    const voices = speechSynthesis.getVoices();
+    for (const name of names) {
+      const v = voices.find((v) => v.name === name);
+      if (v) { this.cachedVoice = v; return; }
+    }
+    this.cachedVoice = voices.find((v) => /^en/i.test(v.lang)) || voices[0] || null;
+  }
+
+  speak(text, rate = 0.85) {
+    if (!("speechSynthesis" in window)) return;
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.rate = rate;
+    u.pitch = 1.05;
+    const v = this.cachedVoice || (this.pickVoice(), this.cachedVoice);
+    if (v) u.voice = v;
+    speechSynthesis.speak(u);
+  }
+
+  getAudioCtx() {
+    if (!this.audioCtx) this.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    return this.audioCtx;
+  }
+
+  playTone(freqs, durationEach) {
+    const ctx = this.getAudioCtx();
+    freqs.forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      const startTime = ctx.currentTime + i * durationEach;
+      gain.gain.setValueAtTime(0.15, startTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationEach);
+      osc.start(startTime);
+      osc.stop(startTime + durationEach);
+    });
+  }
+
+  playCorrectChime() { this.playTone([523, 659, 784, 1047], 0.12); }
+  playWrongChime() { this.playTone([440, 349], 0.18); }
+
+  renderVals() {
+    const s = this.state;
+
+    const tabs = Component.TABS.map((t) => ({
+      id: t.id,
+      label: t.label,
+      onClick: () => this.selectTab(t.id),
+      bg: t.id === s.currentTab ? "#FF6B35" : "rgba(255,255,255,0.12)",
+      color: t.id === s.currentTab ? "#FFFFFF" : "#BFF2CE",
+      shadow: t.id === s.currentTab ? "0 4px 0 #C4471B" : "none",
+    }));
+
+    const levels = (this.gameLevelsAll[s.currentTab] || []).map((gl, idx) => {
+      const words = Component.WORD_ITEMS.filter((i) => i.tab === gl.tab && i.level === gl.contentLevel);
+      return {
+        key: gl.tab + "-" + gl.contentLevel + "-" + gl.mode,
+        icon: gl.mode === "listen" ? "🔊" : "🖼️",
+        label: words.map((w) => w.word).join(", "),
+        modeLabel: gl.mode === "listen" ? "Hear it" : "See it",
+        onClick: () => this.startGame(idx),
+      };
+    });
+
+    const progressPct = s.queue.length ? Math.round((s.currentIndex / s.queue.length) * 100) : 0;
+    const promptIsSpeaker = s.gameMode === "listen";
+
+    const choices = (s.choiceList || []).map((c) => {
+      const status = s.choiceStatus[c.word];
+      let bg = "#FFFFFF", outline = "none", opacity = 1;
+      if (status === "correct") { bg = "#EAFBF1"; outline = "4px solid #1B7A3E"; }
+      if (status === "wrong") { bg = "#FFEDED"; outline = "4px solid #FF5A5A"; opacity = 0.6; }
+      return {
+        key: c.word,
+        word: c.word,
+        image: c.image,
+        isImage: s.gameMode === "listen",
+        isText: s.gameMode !== "listen",
+        bg, outline, opacity,
+        disabled: status === "wrong",
+        onClick: () => this.handleChoice(c.word),
+      };
+    });
+
+    const phonicsWordsArr = this.phonicsWords();
+    const word = this.currentPhonicsWord() || { image: "", chunks: [], note: "" };
+    const tabLabel = (Component.TABS.find((t) => t.id === s.phonicsTab) || {}).label || "";
+
+    const chunks = (word.chunks || []).map((c, i) => ({
+      key: i,
+      text: c,
+      onClick: () => this.tapChunk(i),
+      bg: Component.CHUNK_COLORS[i % Component.CHUNK_COLORS.length],
+      transform: s.litChunkIndex === i ? "scale(1.15)" : "scale(1)",
+      litShadow: s.litChunkIndex === i ? "0 0 0 4px rgba(0,0,0,0.15)" : "none",
+    }));
+
+    const strip = phonicsWordsArr.map((w, i) => ({
+      key: i,
+      image: w.image,
+      onClick: () => this.selectPhonicsWord(i),
+      borderColor: i === s.phonicsIndex ? "#FFC93C" : "transparent",
+    }));
+
+    return {
+      isStart: s.screen === "start",
+      isQuiz: s.screen === "quiz",
+      isDone: s.screen === "done",
+      isPhonics: s.screen === "phonics",
+      tabs, levels,
+      openSayIt: () => this.openSayIt(),
+      backToStart: () => this.backToStart(),
+      progressPct,
+      starsText: `⭐ ${s.stars}`,
+      promptIsSpeaker,
+      promptIsImage: !promptIsSpeaker,
+      promptImage: s.currentItem ? s.currentItem.image : "",
+      speakPrompt: () => this.speakPrompt(),
+      choices,
+      doneScore: `You got ${s.stars} out of ${s.queueLength} ⭐`,
+      doneUnlockMsg: s.stars === s.queueLength && s.queueLength > 0 ? "🎉 Perfect score!" : "",
+      doneContinue: () => this.doneContinue(),
+      phonicsTabLabel: tabLabel,
+      phonicsBubble: s.phonicsBubble,
+      phonicsImage: word.image,
+      phonicsNote: word.note || "",
+      phonicsNoteDisplay: word.note ? "block" : "none",
+      chunks,
+      soundOutClick: () => this.soundOutClick(),
+      sayWholeClick: () => this.sayWholeClick(),
+      nextPhonicsWord: () => this.nextPhonicsWord(),
+      strip,
+    };
+  }
+}
+
+</script>
+</body>
+</html>
