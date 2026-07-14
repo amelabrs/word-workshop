@@ -133,7 +133,10 @@ function startGame() {
   currentContentLevel = gl.contentLevel;
   gameMode = gl.mode;
 
-  levelItems = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level <= currentContentLevel);
+  // Distractor pool draws from the whole tab (not just this level) since all
+  // levels are always playable — otherwise early levels wouldn't have enough
+  // other words to fill 4 choices.
+  levelItems = WORD_ITEMS.filter((i) => i.tab === currentTab);
   const newWords = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level === currentContentLevel);
   const reviewPool = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level < currentContentLevel);
 
