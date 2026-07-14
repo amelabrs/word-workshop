@@ -2,8 +2,8 @@
 
 A vocabulary quiz app for a pre-reading child, structurally mirroring
 [letterbrain](https://amelabrs.github.io/letterbrain): topic tabs, a
-level grid with locked/unlocked pairs, and a 4-choice picture/word quiz.
-Plus a bonus, ungated **Say It** phonics screen for sounding words out.
+level grid, and a 4-choice picture/word quiz. Plus a bonus **Say It**
+phonics screen for sounding words out.
 
 Plain HTML/CSS/JS, no build step, no framework — deployable to GitHub Pages
 by pushing static files.
@@ -13,9 +13,8 @@ by pushing static files.
 Each topic tab has a **level grid**. Levels come in pairs — one **Listen**
 level (🔊 word spoken aloud → pick the matching picture from 4 choices) and
 one **Read** level (🖼️ picture shown → pick the matching word text from 4
-choices) — covering the same words. Scoring ≥80% on a pair unlocks the next
-pair. Progress is tracked per tab in `localStorage`, so unlocked levels
-persist across sessions (`ww_unlocked_<tab>`).
+choices) — covering the same words. All levels are always playable, no
+locking — pick any level in any order.
 
 ## Say It (phonics, bonus mode)
 
@@ -48,7 +47,7 @@ Each word in `WORD_ITEMS`:
 | `word` | yes | The word as spoken/shown/matched against |
 | `tab` | yes | Which `TABS` entry this word belongs to |
 | `image` | yes | Path to a photo. If the file doesn't exist yet, the UI falls back to `images/placeholder.svg` automatically — just drop a real photo at this exact path whenever it's ready, no code changes needed |
-| `level` | yes | Progression grouping within its tab — words sharing a level are introduced together in one unlockable pair (see below) |
+| `level` | yes | Grouping within its tab — words sharing a level are introduced together in one pair of levels (Listen + Read) on the level grid |
 | `chunks` | yes | Ordered syllable/sound pieces for Say It mode — must join back into `word` when concatenated |
 | `letterByLetter` | no | Set `true` for acronyms (e.g. `CPU`, `UPS`) — "Say the word" spells the letters instead of blending syllables |
 | `note` | no | Short caption shown under the picture in Say It mode (used for acronyms, to explain what they stand for) |
@@ -60,7 +59,8 @@ wired into both the quiz and Say It.
 **To add a word to an existing topic**: append an object to `WORD_ITEMS`
 with that tab's id and a `level` (reuse an existing level number to group it
 with other words in the same pair, or use the next number to make it a new
-pair unlocked after the others).
+pair). Lower level numbers appear earlier in the level grid — put words with
+real photos at lower levels than words still on stock/placeholder photos.
 
 **Photos**: real photos, not icons/emoji. Some words are still waiting on a
 photo (using the generic placeholder until then) — check `folders.js` for

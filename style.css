@@ -117,10 +117,6 @@ h1,h2,h3{font-family:'Fredoka', sans-serif; margin:0;}
   cursor:pointer;
   box-shadow:0 5px 0 rgba(31,43,69,0.10);
 }
-.level-card.locked{
-  opacity:0.5;
-  cursor:default;
-}
 .level-icon{font-size:2rem;}
 .level-label{
   font-weight:700;

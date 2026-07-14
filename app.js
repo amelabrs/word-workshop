@@ -1,7 +1,7 @@
 // ============================================================
 // Word Workshop — game logic (data lives in folders.js)
-// Screens/levels/pair-unlock quiz mechanic, mirroring letterbrain, plus a
-// bonus ungated "Say It" phonics screen.
+// Screens/levels quiz mechanic mirroring letterbrain, minus level locking —
+// every level is always playable — plus a bonus "Say It" phonics screen.
 // ============================================================
 
 function buildGameLevels() {
@@ -46,13 +46,6 @@ let soundOutRunning = false;
 // ============================================================
 // Persistence
 // ============================================================
-
-function getUnlockedPair(tab) {
-  return parseInt(localStorage.getItem(`ww_unlocked_${tab}`) || "1", 10);
-}
-function setUnlockedPair(tab, pair) {
-  localStorage.setItem(`ww_unlocked_${tab}`, String(pair));
-}
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -102,26 +95,22 @@ function renderTabs() {
 function renderLevelGrid() {
   const grid = document.getElementById("level-grid");
   grid.innerHTML = "";
-  const unlockedPair = getUnlockedPair(currentTab);
   const levels = GAME_LEVELS[currentTab];
 
   levels.forEach((gl, idx) => {
     const card = document.createElement("button");
-    const locked = gl.pair > unlockedPair;
-    card.className = "level-card" + (locked ? " locked" : "");
+    card.className = "level-card";
     const wordsInLevel = WORD_ITEMS.filter((i) => i.tab === gl.tab && i.level === gl.contentLevel);
     const modeIcon = gl.mode === "listen" ? "🔊" : "🖼️";
     card.innerHTML = `
-      <div class="level-icon">${locked ? "🔒" : modeIcon}</div>
+      <div class="level-icon">${modeIcon}</div>
       <div class="level-label">${wordsInLevel.map((w) => w.word).join(", ")}</div>
       <div class="level-mode">${gl.mode === "listen" ? "Hear it" : "See it"}</div>
     `;
-    if (!locked) {
-      card.onclick = () => {
-        currentGameLevelIdx = idx;
-        startGame();
-      };
-    }
+    card.onclick = () => {
+      currentGameLevelIdx = idx;
+      startGame();
+    };
     grid.appendChild(card);
   });
 }
@@ -259,18 +248,9 @@ function advanceRound() {
 
 function showDone() {
   showScreen("done-screen");
-  const gl = GAME_LEVELS[currentTab][currentGameLevelIdx];
-  const threshold = Math.ceil(queue.length * 0.8);
-  const unlockedPair = getUnlockedPair(currentTab);
-
   document.getElementById("done-score").textContent = `You got ${stars} out of ${queue.length} ⭐`;
-
-  let unlockMsg = "";
-  if (stars >= threshold && gl.pair === unlockedPair) {
-    setUnlockedPair(currentTab, unlockedPair + 1);
-    unlockMsg = "🎉 New level unlocked!";
-  }
-  document.getElementById("done-unlock-msg").textContent = unlockMsg;
+  document.getElementById("done-unlock-msg").textContent =
+    stars === queue.length ? "🎉 Perfect score!" : "";
 }
 
 document.getElementById("done-continue-btn").addEventListener("click", () => {
