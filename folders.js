@@ -59,9 +59,9 @@ const WORD_ITEMS = [
   // ---- Places ----
   { word: "Home", tab: "places", image: "images/house.webp", level: 1, chunks: ["Home"] },
   { word: "School", tab: "places", image: "images/school.avif", level: 1, chunks: ["School"] },
-  { word: "Hospital", tab: "places", image: "images/hospital.jpg", level: 2, chunks: ["Hos", "pi", "tal"] },
+  { word: "Hospital", tab: "places", image: "images/hospital.avif", level: 2, chunks: ["Hos", "pi", "tal"] },
   { word: "Bank", tab: "places", image: "images/bank.jpg", level: 2, chunks: ["Bank"] },
-  { word: "Airport", tab: "places", image: "images/airport.jpg", level: 3, chunks: ["Air", "port"] },
+  { word: "Airport", tab: "places", image: "images/airport.webp", level: 3, chunks: ["Air", "port"] },
 
   // ---- Plants ----
   { word: "Flower", tab: "plants", image: "images/flower.jpg", level: 1, chunks: ["Flow", "er"] },

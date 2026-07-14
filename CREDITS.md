@@ -17,14 +17,12 @@ Creative Commons licenses that permit reuse — credited here per license terms.
 | Desktop | desktop.jpg | "1997 computer.jpg" | Samiknoov | CC0 | commons.wikimedia.org/wiki/File:1997_computer.jpg |
 | Tablet | tablet.jpg | "Apple IPad.png" | KK IN HK | CC BY-SA 4.0 | commons.wikimedia.org/wiki/File:Apple_IPad.png |
 | Smartphone | smartphone.jpg | "Blackview A60 Smartphone Android mobile phone front face logged in screen.jpg" | Acabashi | CC BY-SA 4.0 | commons.wikimedia.org |
-| Hospital | hospital.jpg | "Aisha Hospital Main Entrance.jpg" | SA twenty | CC BY-SA 4.0 | commons.wikimedia.org/wiki/File:Aisha_Hospital_Main_Entrance.jpg |
-| Bank | bank.jpg | "2W5A2083.jpg" | Alisher | CC BY-SA 4.0 | commons.wikimedia.org/wiki/File:2W5A2083.jpg |
-| Airport | airport.jpg | "Frankfurt Airport Terminal 2" | flickrsven | CC BY 2.0 | flickr.com |
 
 CC BY / CC BY-SA require attribution if redistributed — this file satisfies that.
 CC0 photos are public domain and listed here only for provenance, not because
 attribution is legally required.
 
 Everything else (Mother, Father, Grandfather, Grandmother, Monitor, Keyboard,
-Mouse, Printer, CPU, Home, School, Flower, Leaf, Stem, Root) is a
-personal/original photo supplied directly — no external license applies.
+Mouse, Printer, CPU, Home, School, Hospital, Bank, Airport, Flower, Leaf,
+Stem, Root) is a personal/original photo supplied directly — no external
+license applies.
