@@ -40,8 +40,6 @@ let roundWrongs = 0;
 
 let phonicsTab = TABS[0].id;
 let phonicsIndex = 0;
-let litChunkIndex = null;
-let soundOutRunning = false;
 
 // ============================================================
 // Persistence
@@ -296,7 +294,6 @@ function renderWordStrip() {
     d.appendChild(img);
     d.onclick = () => {
       phonicsIndex = i;
-      litChunkIndex = null;
       renderPhonics();
       renderWordStrip();
     };
@@ -312,6 +309,36 @@ function wholeWordSpeech(w) {
   return w.letterByLetter ? w.word.toUpperCase().split("").join(". ") : w.word;
 }
 
+// ---------- Build-the-word tile game ----------
+// The child sees/hears the target word, then must tap tiles — a mix of the
+// word's correct chunks plus a couple of decoys pulled from other words in
+// the same tab — in the right order to assemble it.
+
+let buildProgress = 0;
+let filledSlots = [];
+let trayTiles = [];
+
+function distractorPool(word) {
+  const ownChunks = new Set(word.chunks);
+  const pool = new Set();
+  phonicsWords().forEach((w) => {
+    if (w.word === word.word) return;
+    w.chunks.forEach((c) => {
+      if (!ownChunks.has(c)) pool.add(c);
+    });
+  });
+  return shuffle([...pool]);
+}
+
+function generateTray(word) {
+  const distractorCount = Math.min(2, distractorPool(word).length);
+  const distractors = distractorPool(word).slice(0, distractorCount);
+  const tiles = word.chunks
+    .map((c) => ({ text: c, used: false }))
+    .concat(distractors.map((c) => ({ text: c, used: false })));
+  return shuffle(tiles);
+}
+
 function renderPhonics() {
   const w = currentPhonicsWord();
 
@@ -323,62 +350,99 @@ function renderPhonics() {
   noteEl.textContent = w.note || "";
   noteEl.style.display = w.note ? "" : "none";
 
-  const chunkRow = document.getElementById("chunk-row");
-  chunkRow.innerHTML = "";
-  w.chunks.forEach((c, i) => {
-    const el = document.createElement("div");
-    el.className = "chunk" + (litChunkIndex === i ? " lit" : "");
-    el.textContent = c;
-    el.onclick = () => tapChunk(i);
-    chunkRow.appendChild(el);
-  });
+  buildProgress = 0;
+  filledSlots = new Array(w.chunks.length).fill(null);
+  trayTiles = generateTray(w);
 
-  document.getElementById("phonics-bubble").textContent =
-    "Tap each colour to hear the sound, then blend them!";
+  renderBuildRow();
+  renderTray();
+
+  document.getElementById("phonics-bubble").textContent = "Build the word! Tap the pieces in order.";
+  setTimeout(() => speak(wholeWordSpeech(w)), 300);
 }
 
-function tapChunk(i) {
-  litChunkIndex = i;
-  renderPhonics();
+function renderBuildRow() {
+  const row = document.getElementById("build-row");
+  row.innerHTML = "";
+  filledSlots.forEach((text) => {
+    const el = document.createElement("div");
+    el.className = "build-slot" + (text ? " filled" : "");
+    el.textContent = text || "";
+    row.appendChild(el);
+  });
+}
+
+function renderTray() {
+  const tray = document.getElementById("tile-tray");
+  tray.innerHTML = "";
+  trayTiles.forEach((tile, i) => {
+    const el = document.createElement("button");
+    el.className = "tile" + (tile.used ? " used" : "");
+    el.textContent = tile.text;
+    el.disabled = tile.used;
+    el.onclick = () => tapTile(i);
+    tray.appendChild(el);
+  });
+}
+
+function tapTile(i) {
+  const tile = trayTiles[i];
+  if (tile.used) return;
   const w = currentPhonicsWord();
-  speak(w.chunks[i], 0.65);
-  setTimeout(() => {
-    if (litChunkIndex === i) {
-      litChunkIndex = null;
-      renderPhonics();
+  speak(tile.text, 0.65);
+
+  if (tile.text === w.chunks[buildProgress]) {
+    tile.used = true;
+    filledSlots[buildProgress] = tile.text;
+    buildProgress++;
+    renderBuildRow();
+    renderTray();
+
+    if (buildProgress >= w.chunks.length) {
+      playCorrectChime();
+      document.getElementById("phonics-bubble").textContent = "🎉 You built it!";
+      setTimeout(() => speak(wholeWordSpeech(w), 0.8), 400);
+    } else {
+      document.getElementById("phonics-bubble").textContent = "Yes! Next piece...";
     }
-  }, 500);
+  } else {
+    playWrongChime();
+    document.getElementById("phonics-bubble").textContent = "Not quite — try again!";
+    const trayEl = document.getElementById("tile-tray");
+    const el = trayEl.children[i];
+    if (el) {
+      el.classList.add("wrong");
+      setTimeout(() => el.classList.remove("wrong"), 400);
+    }
+  }
 }
 
 document.getElementById("phonics-say-whole-btn").addEventListener("click", () => {
-  document.getElementById("phonics-bubble").textContent = "Your turn — say it back!";
   speak(wholeWordSpeech(currentPhonicsWord()), 0.8);
 });
 
 document.getElementById("phonics-sound-out-btn").addEventListener("click", () => {
-  if (soundOutRunning) return;
-  soundOutRunning = true;
   const w = currentPhonicsWord();
-  const chunks = w.chunks;
-  let i = 0;
-  const step = () => {
-    if (i >= chunks.length) {
-      setTimeout(() => speak(wholeWordSpeech(w), 0.8), 250);
-      soundOutRunning = false;
-      return;
+  if (buildProgress >= w.chunks.length) {
+    speak(wholeWordSpeech(w), 0.8);
+    return;
+  }
+  const nextText = w.chunks[buildProgress];
+  speak(nextText, 0.6);
+  const trayEl = document.getElementById("tile-tray");
+  trayTiles.forEach((tile, i) => {
+    if (!tile.used && tile.text === nextText) {
+      const el = trayEl.children[i];
+      if (el) {
+        el.classList.add("hint");
+        setTimeout(() => el.classList.remove("hint"), 700);
+      }
     }
-    litChunkIndex = i;
-    renderPhonics();
-    speak(chunks[i], 0.6);
-    i++;
-    setTimeout(step, 650);
-  };
-  step();
+  });
 });
 
 document.getElementById("phonics-next-btn").addEventListener("click", () => {
   phonicsIndex = (phonicsIndex + 1) % phonicsWords().length;
-  litChunkIndex = null;
   renderPhonics();
   renderWordStrip();
 });

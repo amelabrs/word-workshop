@@ -55,16 +55,19 @@
     <div id="phonics-tab-label" class="phonics-tab-label"></div>
   </div>
 
-  <div class="bubble" id="phonics-bubble">Tap each colour to hear the sound, then blend them!</div>
+  <div class="bubble" id="phonics-bubble">Build the word! Tap the pieces in order.</div>
 
   <div class="stage">
     <div class="phonics-card">
       <img id="phonics-image" class="phonics-image" alt="">
       <p id="phonics-note" class="phonics-note"></p>
-      <div class="chunk-row" id="chunk-row"></div>
+
+      <div class="build-row" id="build-row"></div>
+      <div class="tile-tray" id="tile-tray"></div>
+
       <div class="phonics-buttons">
-        <button class="pb slow" id="phonics-sound-out-btn">🐢 Sound it out</button>
-        <button class="pb whole" id="phonics-say-whole-btn">🔊 Say the word</button>
+        <button class="pb slow" id="phonics-sound-out-btn">🐢 Hint</button>
+        <button class="pb whole" id="phonics-say-whole-btn">🔊 Hear word</button>
         <button class="pb next" id="phonics-next-btn">Next word ➡️</button>
       </div>
     </div>
@@ -73,7 +76,7 @@
   <div class="word-strip" id="word-strip"></div>
 </div>
 
-<footer>Works best in Chrome or Safari with sound on. Tap any picture or chunk to hear it again — there's no wrong amount of replaying.</footer>
+<footer>Works best in Chrome or Safari with sound on. Tap a tile to hear it, then build the word in order — there's no wrong amount of trying.</footer>
 
 <script src="folders.js"></script>
 <script src="app.js"></script>

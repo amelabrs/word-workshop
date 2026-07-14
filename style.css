@@ -300,25 +300,66 @@ h1,h2,h3{font-family:'Fredoka', sans-serif; margin:0;}
   margin:0 0 4px;
   font-weight:700;
 }
-.chunk-row{
+/* Build row: empty slots that fill in as the child picks correct tiles */
+.build-row{
   display:flex; justify-content:center; gap:8px; flex-wrap:wrap;
-  margin:18px 0 22px;
+  margin:18px 0 14px;
+  min-height:58px;
 }
-.chunk{
+.build-slot{
   font-family:'Fredoka', sans-serif;
-  font-weight:700; font-size:34px;
+  font-weight:700; font-size:30px;
+  min-width:46px;
+  padding:8px 14px;
+  border-radius:14px;
+  border:3px dashed #C9D6E5;
+  color:transparent;
+  display:flex; align-items:center; justify-content:center;
+}
+.build-slot.filled{
+  border-style:solid;
+  border-color:var(--grass);
+  background:#EAFBF1;
+  color:var(--ink);
+  animation:popIn 0.25s ease;
+}
+
+/* Tile tray: shuffled correct pieces + a couple of decoys, tap to place */
+.tile-tray{
+  display:flex; justify-content:center; gap:10px; flex-wrap:wrap;
+  margin:0 0 22px;
+}
+.tile{
+  font-family:'Fredoka', sans-serif;
+  font-weight:700; font-size:30px;
   padding:8px 16px;
   border-radius:14px;
+  border:none;
   cursor:pointer;
   color:white;
 }
-.chunk:nth-child(6n+1){background:var(--sky);}
-.chunk:nth-child(6n+2){background:var(--grass);}
-.chunk:nth-child(6n+3){background:var(--cherry);}
-.chunk:nth-child(6n+4){background:var(--plum);}
-.chunk:nth-child(6n+5){background:var(--marigold);}
-.chunk:nth-child(6n+6){background:#4C9F9F;}
-.chunk.lit{transform:scale(1.15); box-shadow:0 0 0 4px rgba(0,0,0,0.08);}
+.tile:nth-child(6n+1){background:var(--sky);}
+.tile:nth-child(6n+2){background:var(--grass);}
+.tile:nth-child(6n+3){background:var(--cherry);}
+.tile:nth-child(6n+4){background:var(--plum);}
+.tile:nth-child(6n+5){background:var(--marigold);}
+.tile:nth-child(6n+6){background:#4C9F9F;}
+.tile.used{opacity:0; pointer-events:none; transform:scale(0.6);}
+.tile.wrong{animation:shake 0.35s;}
+.tile.hint{animation:wiggle 0.7s ease;}
+@keyframes shake{
+  0%,100%{transform:translateX(0)}
+  25%{transform:translateX(-6px)}
+  75%{transform:translateX(6px)}
+}
+@keyframes wiggle{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.2)}
+}
+@keyframes popIn{
+  from{transform:scale(0.7); opacity:0;}
+  to{transform:scale(1); opacity:1;}
+}
 
 .phonics-buttons{display:flex; gap:12px; justify-content:center; flex-wrap:wrap;}
 .pb{

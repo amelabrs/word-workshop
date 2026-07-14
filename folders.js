@@ -1,10 +1,9 @@
 // Word Workshop — content data.
 //
 // TABS: the topic tabs shown on the start screen.
-// WORD_ITEMS: every word, grouped by `tab` and `level`. `level` controls
-// quiz progression — words with the same level are introduced together in
-// one pair of game levels (Listen + Read), and pairs unlock in order as the
-// child scores well. This is the same progression model as letterbrain.
+// WORD_ITEMS: every word, grouped by `tab` and `level`. `level` just
+// controls grouping/ordering on the level grid (all levels are always
+// playable, no locking).
 //
 // Each word:
 //   word           - shown/spoken/matched against
@@ -13,11 +12,16 @@
 //                    falls back to images/placeholder.svg automatically —
 //                    just drop a real photo at this exact path whenever it's
 //                    ready, no code changes needed.
-//   level          - progression grouping within its tab (see above)
-//   chunks         - ordered syllable/sound pieces for "Say It" mode; must
-//                    join back into `word` when concatenated
-//   letterByLetter - (optional) true for acronyms — "Say the word" spells
-//                    the letters instead of blending syllables
+//   level          - grouping within its tab (see above)
+//   chunks         - ordered sound pieces for "Say It" mode; must join back
+//                    into `word` when concatenated. This is also the answer
+//                    key for the build-the-word tile game, so prefer small
+//                    pieces (2-4) over big ones — a word split into only 2
+//                    chunks makes for a trivially easy build. Words that are
+//                    already short/one-syllable (Mouse, Home, Bank...) are
+//                    fine left as a single chunk.
+//   letterByLetter - (optional) true for acronyms — build/say-the-word
+//                    spells the letters instead of blending sound pieces
 //   note           - (optional) short caption shown in "Say It" mode
 
 const TABS = [
@@ -32,12 +36,12 @@ const WORD_ITEMS = [
   // ---- Family ----
   // Real family photos (Mother, Father, Grandfather, Grandmother) prioritized
   // into the earlier levels; Sister/Brother/Baby use stock photos for now.
-  { word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, chunks: ["Mo", "ther"] },
-  { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, chunks: ["Fa", "ther"] },
-  { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 2, chunks: ["Grand", "fa", "ther"] },
-  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 2, chunks: ["Grand", "mo", "ther"] },
-  { word: "Sister", tab: "family", image: "images/sister.jpg", level: 3, chunks: ["Sis", "ter"] },
-  { word: "Brother", tab: "family", image: "images/brother.jpg", level: 3, chunks: ["Bro", "ther"] },
+  { word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, chunks: ["Mo", "th", "er"] },
+  { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, chunks: ["Fa", "th", "er"] },
+  { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 2, chunks: ["Grand", "fa", "th", "er"] },
+  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 2, chunks: ["Grand", "mo", "th", "er"] },
+  { word: "Sister", tab: "family", image: "images/sister.jpg", level: 3, chunks: ["Sis", "t", "er"] },
+  { word: "Brother", tab: "family", image: "images/brother.jpg", level: 3, chunks: ["Bro", "th", "er"] },
   { word: "Baby", tab: "family", image: "images/baby.jpg", level: 4, chunks: ["Ba", "by"] },
 
   // ---- Computer Parts ----

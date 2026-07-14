@@ -19,11 +19,18 @@ locking — pick any level in any order.
 ## Say It (phonics, bonus mode)
 
 Tap the "🗣️ Say It" button on any tab to open an ungated practice screen for
-every word in that tab — no locking, no scoring. Each word is broken into
-syllable/sound chunks; tapping a chunk speaks just that piece, "🐢 Sound it
-out" plays them in sequence, "🔊 Say the word" blends them into the whole
-word. No microphone or speech recognition — the app models the word and lets
-the child repeat it back out loud on their own.
+every word in that tab — no locking, no scoring. The word's picture is shown
+and its name spoken aloud, then the child must **build the word**: a tray of
+shuffled tiles (the word's correct sound pieces, plus 1-2 decoy pieces
+pulled from other words in the tab) appears below a row of empty slots.
+Tapping a tile always speaks it; tapping the *correct next* piece drops it
+into place, tapping a wrong one shakes and doesn't advance. This is an
+active recognition task, not a lookup — the child is choosing between
+several visually/audibly different pieces to spell the word by ear and
+letter-shape, not just reading it. "🐢 Hint" speaks (and highlights in the
+tray) whichever piece is needed next; "🔊 Hear word" replays the whole
+target word. No microphone or speech recognition — the child says the word
+back out loud on their own, the app doesn't listen for it.
 
 ## Adding content — the folder-based structure
 
@@ -39,7 +46,7 @@ Each tab in `TABS`:
 
 Each word in `WORD_ITEMS`:
 ```js
-{ word: "Mother", tab: "family", image: "images/mother.jpeg", level: 1, chunks: ["Mo", "ther"] }
+{ word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, chunks: ["Mo", "th", "er"] }
 ```
 
 | Field | Required | Description |
@@ -48,8 +55,8 @@ Each word in `WORD_ITEMS`:
 | `tab` | yes | Which `TABS` entry this word belongs to |
 | `image` | yes | Path to a photo. If the file doesn't exist yet, the UI falls back to `images/placeholder.svg` automatically — just drop a real photo at this exact path whenever it's ready, no code changes needed |
 | `level` | yes | Grouping within its tab — words sharing a level are introduced together in one pair of levels (Listen + Read) on the level grid |
-| `chunks` | yes | Ordered syllable/sound pieces for Say It mode — must join back into `word` when concatenated |
-| `letterByLetter` | no | Set `true` for acronyms (e.g. `CPU`, `UPS`) — "Say the word" spells the letters instead of blending syllables |
+| `chunks` | yes | Ordered sound pieces — the answer key for the Say It build-the-word game, so prefer 2-4 small pieces over 1-2 big ones (a word split into only 2 chunks makes for a trivially easy build). Words that are already short/one-syllable are fine left as a single chunk |
+| `letterByLetter` | no | Set `true` for acronyms (e.g. `CPU`, `UPS`) — build/say-the-word spells the letters instead of blending sound pieces |
 | `note` | no | Short caption shown under the picture in Say It mode (used for acronyms, to explain what they stand for) |
 
 **To add a new topic**: add a new entry to `TABS`, then give some
