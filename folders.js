@@ -30,12 +30,15 @@ const TABS = [
 
 const WORD_ITEMS = [
   // ---- Family ----
-  { word: "Mother", tab: "family", image: "images/mother.jpeg", level: 1, chunks: ["Mo", "ther"] },
+  // Real family photos (Mother, Father, Grandfather, Grandmother) prioritized
+  // into the earlier levels; Sister/Brother/Baby use stock photos for now.
+  { word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, chunks: ["Mo", "ther"] },
   { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, chunks: ["Fa", "ther"] },
-  { word: "Sister", tab: "family", image: "images/sister.jpg", level: 2, chunks: ["Sis", "ter"] },
-  { word: "Brother", tab: "family", image: "images/brother.jpg", level: 2, chunks: ["Bro", "ther"] },
-  { word: "Baby", tab: "family", image: "images/baby.jpg", level: 3, chunks: ["Ba", "by"] },
-  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 3, chunks: ["Grand", "mo", "ther"] },
+  { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 2, chunks: ["Grand", "fa", "ther"] },
+  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 2, chunks: ["Grand", "mo", "ther"] },
+  { word: "Sister", tab: "family", image: "images/sister.jpg", level: 3, chunks: ["Sis", "ter"] },
+  { word: "Brother", tab: "family", image: "images/brother.jpg", level: 3, chunks: ["Bro", "ther"] },
+  { word: "Baby", tab: "family", image: "images/baby.jpg", level: 4, chunks: ["Ba", "by"] },
 
   // ---- Computer Parts ----
   { word: "Monitor", tab: "computer", image: "images/monitor.jpg", level: 1, chunks: ["Mo", "ni", "tor"] },
