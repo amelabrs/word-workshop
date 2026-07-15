@@ -6,15 +6,25 @@
 
 // Level-card mode icons — custom SVGs instead of emoji so they render
 // identically everywhere, rather than however each OS draws 🔊/🖼️.
+// fill/stroke use currentColor so they follow whatever text color the card gets.
 const ICON_HEAR_SVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M3 9.5v5h3.7l5 3.8V5.7l-5 3.8H3z" fill="#1B7A3E"/>
-  <path d="M16.2 8.3a5.2 5.2 0 0 1 0 7.4" stroke="#1B7A3E" stroke-width="2.3" stroke-linecap="round"/>
-  <path d="M18.8 5.8a8.8 8.8 0 0 1 0 12.4" stroke="#1B7A3E" stroke-width="2.3" stroke-linecap="round"/>
+  <path d="M3 9.5v5h3.7l5 3.8V5.7l-5 3.8H3z" fill="currentColor"/>
+  <path d="M16.2 8.3a5.2 5.2 0 0 1 0 7.4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
+  <path d="M18.8 5.8a8.8 8.8 0 0 1 0 12.4" stroke="currentColor" stroke-width="2.3" stroke-linecap="round"/>
 </svg>`;
 const ICON_SEE_SVG = `<svg width="32" height="32" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M2 12S5.8 5.5 12 5.5 22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z" stroke="#1B7A3E" stroke-width="2.3" stroke-linejoin="round"/>
-  <circle cx="12" cy="12" r="3.2" fill="#1B7A3E"/>
+  <path d="M2 12S5.8 5.5 12 5.5 22 12 22 12s-3.8 6.5-10 6.5S2 12 2 12z" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/>
+  <circle cx="12" cy="12" r="3.2" fill="currentColor"/>
 </svg>`;
+
+// Level-card background themes, cycled per pair (row) so the Hear it/See it
+// pair for the same words share a color.
+const CARD_THEMES = [
+  { bg: "#1B7A3E", text: "#ffffff", sub: "#BFF2CE" },
+  { bg: "#3E9EDB", text: "#ffffff", sub: "#DFF2FC" },
+  { bg: "#FF6B35", text: "#ffffff", sub: "#FFE3D6" },
+  { bg: "#FFC93C", text: "#5A4400", sub: "#8A6A1A" },
+];
 
 function buildGameLevels() {
   const out = {};
@@ -110,12 +120,14 @@ function renderLevelGrid() {
   levels.forEach((gl, idx) => {
     const card = document.createElement("button");
     card.className = "level-card";
+    const theme = CARD_THEMES[(gl.pair - 1) % CARD_THEMES.length];
+    card.style.background = theme.bg;
     const wordsInLevel = WORD_ITEMS.filter((i) => i.tab === gl.tab && i.level === gl.contentLevel);
     const modeIcon = gl.mode === "listen" ? ICON_HEAR_SVG : ICON_SEE_SVG;
     card.innerHTML = `
-      <div class="level-icon">${modeIcon}</div>
-      <div class="level-label">${wordsInLevel.map((w) => w.word).join(", ")}</div>
-      <div class="level-mode">${gl.mode === "listen" ? "Hear it" : "See it"}</div>
+      <div class="level-icon" style="color:${theme.text}">${modeIcon}</div>
+      <div class="level-label" style="color:${theme.text}">${wordsInLevel.map((w) => w.word).join(", ")}</div>
+      <div class="level-mode" style="color:${theme.sub}">${gl.mode === "listen" ? "Hear it" : "See it"}</div>
     `;
     card.onclick = () => {
       currentGameLevelIdx = idx;
