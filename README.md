@@ -64,6 +64,7 @@ Each word in `WORD_ITEMS`:
 | `chunks` | yes | Ordered sound pieces — the answer key for the Say It build-the-word game, so prefer 2-4 small pieces over 1-2 big ones (a word split into only 2 chunks makes for a trivially easy build). Words that are already short/one-syllable are fine left as a single chunk |
 | `letterByLetter` | no | Set `true` for acronyms (e.g. `CPU`, `UPS`) — build/say-the-word spells the letters instead of blending sound pieces |
 | `note` | no | Short caption shown under the picture in Say It mode (used for acronyms, to explain what they stand for) |
+| `group` | no | Scopes the quiz's answer-choice pool to only other words sharing the same group within the tab, instead of the whole tab. Use for easily-confused words that should be drilled against each other specifically — e.g. Mother/Father/Grandmother/Grandfather share `group: "parents"` so a Mother question never offers Sister/Baby as an option. Words without a group use the whole-tab pool (default) |
 
 **To add a new topic**: add a new entry to `TABS`, then give some
 `WORD_ITEMS` that `tab` id. It appears automatically as a new tab, fully

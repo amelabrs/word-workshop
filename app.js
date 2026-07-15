@@ -196,7 +196,10 @@ function renderChoices() {
   const grid = document.getElementById("choices-grid");
   grid.innerHTML = "";
 
-  const distractPool = levelItems.filter((i) => i.word !== currentItem.word);
+  const pool = currentItem.group
+    ? WORD_ITEMS.filter((i) => i.tab === currentTab && i.group === currentItem.group)
+    : levelItems;
+  const distractPool = pool.filter((i) => i.word !== currentItem.word);
   const distractors = shuffle([...distractPool]).slice(0, 3);
   const choices = shuffle([currentItem, ...distractors]);
 

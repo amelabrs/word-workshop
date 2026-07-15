@@ -22,6 +22,14 @@
 //                    fine left as a single chunk.
 //   letterByLetter - (optional) true for acronyms — build/say-the-word
 //                    spells the letters instead of blending sound pieces
+//   group          - (optional) scopes the quiz's answer-choice pool to only
+//                    other words sharing the same group within the tab,
+//                    instead of the whole tab. Use this for words that are
+//                    easily confused with each other and should be drilled
+//                    against each other specifically (e.g. Mother/Father/
+//                    Grandmother/Grandfather share group "parents" so a
+//                    Mother question never offers Sister/Baby as an option).
+//                    Words without a group fall back to the whole-tab pool.
 //   note           - (optional) short caption shown in "Say It" mode
 
 const TABS = [
@@ -36,10 +44,10 @@ const WORD_ITEMS = [
   // ---- Family ----
   // Real family photos (Mother, Father, Grandfather, Grandmother) prioritized
   // into the earlier levels; Sister/Brother/Baby use stock photos for now.
-  { word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, chunks: ["Mo", "th", "er"] },
-  { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, chunks: ["Fa", "th", "er"] },
-  { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 2, chunks: ["Grand", "fa", "th", "er"] },
-  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 2, chunks: ["Grand", "mo", "th", "er"] },
+  { word: "Mother", tab: "family", image: "images/mother.jpg", level: 1, group: "parents", chunks: ["Mo", "th", "er"] },
+  { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, group: "parents", chunks: ["Fa", "th", "er"] },
+  { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 2, group: "parents", chunks: ["Grand", "fa", "th", "er"] },
+  { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 2, group: "parents", chunks: ["Grand", "mo", "th", "er"] },
   { word: "Sister", tab: "family", image: "images/sister.jpg", level: 3, chunks: ["Sis", "t", "er"] },
   { word: "Brother", tab: "family", image: "images/brother.jpg", level: 3, chunks: ["Bro", "th", "er"] },
   { word: "Baby", tab: "family", image: "images/baby.jpg", level: 4, chunks: ["Ba", "by"] },
