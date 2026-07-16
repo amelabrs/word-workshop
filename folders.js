@@ -63,7 +63,7 @@ const WORD_ITEMS = [
   { word: "Monitor", tab: "computer", image: "images/monitor.jpg", level: 1, chunks: ["Mo", "ni", "tor"] },
   { word: "Keyboard", tab: "computer", image: "images/keyboard.jpg", level: 1, chunks: ["Key", "board"] },
   { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 1, chunks: ["Mouse"] },
-  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 2, chunks: ["Spea", "ker"] },
+  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 1, chunks: ["Spea", "ker"] },
   { word: "Printer", tab: "computer", image: "images/printer.jpeg", level: 2, chunks: ["Prin", "ter"] },
   { word: "CPU", tab: "computer", image: "images/CPU.jpg", level: 3, chunks: ["C", "P", "U"], letterByLetter: true, note: "the brain of the computer" },
   { word: "UPS", tab: "computer", image: "images/ups.jpg", level: 3, chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
