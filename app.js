@@ -26,11 +26,17 @@ const CARD_THEMES = [
   { bg: "#FFC93C", text: "#5A4400", sub: "#8A6A1A" },
 ];
 
+// Active (non-hidden) words for a tab — the single place "hidden" is
+// enforced, so every quiz/level-grid/Say-It pool respects it consistently.
+function tabWords(tab) {
+  return WORD_ITEMS.filter((i) => i.tab === tab && !i.hidden);
+}
+
 function buildGameLevels() {
   const out = {};
   TABS.forEach((t) => (out[t.id] = []));
   TABS.forEach((t) => {
-    const levels = [...new Set(WORD_ITEMS.filter((i) => i.tab === t.id).map((i) => i.level))].sort(
+    const levels = [...new Set(tabWords(t.id).map((i) => i.level))].sort(
       (a, b) => a - b
     );
     levels.forEach((contentLevel, idx) => {
@@ -122,7 +128,7 @@ function renderLevelGrid() {
     card.className = "level-card";
     const theme = CARD_THEMES[(gl.pair - 1) % CARD_THEMES.length];
     card.style.background = theme.bg;
-    const wordsInLevel = WORD_ITEMS.filter((i) => i.tab === gl.tab && i.level === gl.contentLevel);
+    const wordsInLevel = tabWords(gl.tab).filter((i) => i.level === gl.contentLevel);
     const modeIcon = gl.mode === "listen" ? ICON_HEAR_SVG : ICON_SEE_SVG;
     card.innerHTML = `
       <div class="level-icon" style="color:${theme.text}">${modeIcon}</div>
@@ -158,9 +164,9 @@ function startGame() {
   // Distractor pool draws from the whole tab (not just this level) since all
   // levels are always playable — otherwise early levels wouldn't have enough
   // other words to fill 4 choices.
-  levelItems = WORD_ITEMS.filter((i) => i.tab === currentTab);
-  const newWords = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level === currentContentLevel);
-  const reviewPool = WORD_ITEMS.filter((i) => i.tab === currentTab && i.level < currentContentLevel);
+  levelItems = tabWords(currentTab);
+  const newWords = levelItems.filter((i) => i.level === currentContentLevel);
+  const reviewPool = levelItems.filter((i) => i.level < currentContentLevel);
 
   let built = [];
   newWords.forEach((w) => {
@@ -221,7 +227,7 @@ function renderChoices() {
   grid.innerHTML = "";
 
   const pool = currentItem.group
-    ? WORD_ITEMS.filter((i) => i.tab === currentTab && i.group === currentItem.group)
+    ? tabWords(currentTab).filter((i) => i.group === currentItem.group)
     : levelItems;
   const distractPool = pool.filter((i) => i.word !== currentItem.word);
   const distractors = shuffle([...distractPool]).slice(0, 3);
@@ -300,7 +306,7 @@ document.getElementById("phonics-back-btn").addEventListener("click", () => {
 });
 
 function phonicsWords() {
-  return WORD_ITEMS.filter((i) => i.tab === phonicsTab);
+  return tabWords(phonicsTab);
 }
 
 function renderPhonicsTabLabel() {
