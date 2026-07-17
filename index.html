@@ -29,6 +29,11 @@
   <button class="say-it-btn" id="say-it-btn">🗣️ Say It — practice this folder's words</button>
 
   <div class="level-grid" id="level-grid"></div>
+
+  <label class="no-videos-toggle">
+    <input type="checkbox" id="no-videos-checkbox">
+    🚫 No videos (skip reward clips)
+  </label>
 </div>
 
 <div id="quiz-screen" class="screen">
@@ -81,6 +86,13 @@
 </div>
 
 <footer>Works best in Chrome or Safari with sound on. Tap a tile to hear it, then build the word in order — there's no wrong amount of trying.</footer>
+
+<div id="video-overlay" class="overlay">
+  <div class="overlay-inner">
+    <iframe id="video-frame" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+    <button id="video-skip-btn" class="skip-btn">Skip ✖</button>
+  </div>
+</div>
 
 <script src="folders.js"></script>
 <script src="app.js"></script>

@@ -36,6 +36,9 @@
 //                    the entry stays in the file (photo/data intact) but is
 //                    otherwise inert. Use to pull a word out of rotation
 //                    temporarily without losing its content.
+//   videoReward    - (optional) a YouTube Shorts ID. After the child answers
+//                    this word correctly (either mode), a short video plays
+//                    before advancing to the next round, skippable anytime.
 
 const TABS = [
   { id: "family", label: "Family" },
@@ -55,18 +58,20 @@ const WORD_ITEMS = [
   { word: "Father", tab: "family", image: "images/father.jpeg", level: 1, group: "immediate", chunks: ["Fa", "th", "er"] },
   { word: "Sister", tab: "family", image: "images/sister.jpg", level: 2, group: "immediate", chunks: ["Sis", "t", "er"] },
   { word: "Brother", tab: "family", image: "images/brother.jpg", level: 2, group: "immediate", chunks: ["Bro", "th", "er"] },
-  { word: "Baby", tab: "family", image: "images/baby.jpg", level: 3, chunks: ["Ba", "by"] },
+  { word: "Baby", tab: "family", image: "images/baby.jpg", level: 3, hidden: true, chunks: ["Ba", "by"] },
   { word: "Grandfather", tab: "family", image: "images/grandfather.jpg", level: 4, hidden: true, chunks: ["Grand", "fa", "th", "er"] },
   { word: "Grandmother", tab: "family", image: "images/grandmother.jpg", level: 4, hidden: true, chunks: ["Grand", "mo", "th", "er"] },
 
   // ---- Computer Parts ----
-  { word: "Monitor", tab: "computer", image: "images/monitor.jpg", level: 1, chunks: ["Mo", "ni", "tor"] },
+  // Levels 1-3 introduce new pairs; TEST_AFTER (app.js) inserts cumulative
+  // review levels after levels 2 and 3 automatically. CPU is hidden for now.
+  { word: "Monitor", tab: "computer", image: "images/monitor.svg", level: 1, chunks: ["Mo", "ni", "tor"] },
   { word: "Keyboard", tab: "computer", image: "images/keyboard.jpg", level: 1, chunks: ["Key", "board"] },
-  { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 1, chunks: ["Mouse"] },
-  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 1, chunks: ["Spea", "ker"] },
-  { word: "Printer", tab: "computer", image: "images/printer.jpeg", level: 2, chunks: ["Prin", "ter"] },
-  { word: "CPU", tab: "computer", image: "images/CPU.jpg", level: 3, chunks: ["C", "P", "U"], letterByLetter: true, note: "the brain of the computer" },
-  { word: "UPS", tab: "computer", image: "images/ups.jpg", level: 3, chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
+  { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 2, chunks: ["Mouse"] },
+  { word: "Printer", tab: "computer", image: "images/printer.jpeg", level: 2, videoReward: "aa2QE76Ag1M", chunks: ["Prin", "ter"] },
+  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 3, videoReward: "vqCXV6L4CZ4", chunks: ["Spea", "ker"] },
+  { word: "UPS", tab: "computer", image: "images/UPS.jpeg", level: 3, videoReward: "YJcn6Xdz11k", chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
+  { word: "CPU", tab: "computer", image: "images/CPU.jpg", level: 3, hidden: true, chunks: ["C", "P", "U"], letterByLetter: true, note: "the brain of the computer" },
 
   // ---- Computer Types ----
   { word: "Computer", tab: "types", image: "images/computer.jpg", level: 1, chunks: ["Com", "pu", "ter"] },

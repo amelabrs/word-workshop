@@ -32,6 +32,14 @@ function tabWords(tab) {
   return WORD_ITEMS.filter((i) => i.tab === tab && !i.hidden);
 }
 
+// Per-tab list of content levels after which to insert a cumulative "test"
+// round (Hear it + See it) covering every word at or below that level —
+// review, not new content. E.g. TEST_AFTER.computer = [2, 3] inserts a test
+// of levels 1-2 right after level 2, and a test of levels 1-3 after level 3.
+const TEST_AFTER = {
+  computer: [2, 3],
+};
+
 function buildGameLevels() {
   const out = {};
   TABS.forEach((t) => (out[t.id] = []));
@@ -39,10 +47,17 @@ function buildGameLevels() {
     const levels = [...new Set(tabWords(t.id).map((i) => i.level))].sort(
       (a, b) => a - b
     );
-    levels.forEach((contentLevel, idx) => {
-      const pair = idx + 1;
+    const testAfter = TEST_AFTER[t.id] || [];
+    let pair = 0;
+    levels.forEach((contentLevel) => {
+      pair++;
       out[t.id].push({ tab: t.id, contentLevel, mode: "listen", pair });
       out[t.id].push({ tab: t.id, contentLevel, mode: "read", pair });
+      if (testAfter.includes(contentLevel)) {
+        pair++;
+        out[t.id].push({ tab: t.id, upToLevel: contentLevel, mode: "listen", pair, isTest: true });
+        out[t.id].push({ tab: t.id, upToLevel: contentLevel, mode: "read", pair, isTest: true });
+      }
     });
   });
   return out;
@@ -128,12 +143,16 @@ function renderLevelGrid() {
     card.className = "level-card";
     const theme = CARD_THEMES[(gl.pair - 1) % CARD_THEMES.length];
     card.style.background = theme.bg;
-    const wordsInLevel = tabWords(gl.tab).filter((i) => i.level === gl.contentLevel);
+    const wordsInLevel = gl.isTest
+      ? tabWords(gl.tab).filter((i) => i.level <= gl.upToLevel)
+      : tabWords(gl.tab).filter((i) => i.level === gl.contentLevel);
     const modeIcon = gl.mode === "listen" ? ICON_HEAR_SVG : ICON_SEE_SVG;
+    const modeText = gl.mode === "listen" ? "Hear it" : "See it";
+    const modeLabel = gl.isTest ? `⭐ Test · ${modeText}` : modeText;
     card.innerHTML = `
       <div class="level-icon" style="color:${theme.text}">${modeIcon}</div>
       <div class="level-label" style="color:${theme.text}">${wordsInLevel.map((w) => w.word).join(", ")}</div>
-      <div class="level-mode" style="color:${theme.sub}">${gl.mode === "listen" ? "Hear it" : "See it"}</div>
+      <div class="level-mode" style="color:${theme.sub}">${modeLabel}</div>
     `;
     card.onclick = () => {
       currentGameLevelIdx = idx;
@@ -158,15 +177,27 @@ document.getElementById("say-it-btn").addEventListener("click", () => {
 
 function startGame() {
   const gl = GAME_LEVELS[currentTab][currentGameLevelIdx];
-  currentContentLevel = gl.contentLevel;
   gameMode = gl.mode;
 
-  // Distractor pool draws from the whole tab (not just this level) since all
-  // levels are always playable — otherwise early levels wouldn't have enough
-  // other words to fill 4 choices.
-  levelItems = tabWords(currentTab);
-  const newWords = levelItems.filter((i) => i.level === currentContentLevel);
-  const reviewPool = levelItems.filter((i) => i.level < currentContentLevel);
+  let newWords, reviewPool;
+  if (gl.isTest) {
+    // Cumulative review: every non-hidden word at or below upToLevel, no
+    // extra review sampling (the test already covers everything), and the
+    // distractor pool is scoped to just those words (not the whole tab) so
+    // words from a later, not-yet-reached level can't show up as options.
+    currentContentLevel = gl.upToLevel;
+    newWords = tabWords(currentTab).filter((i) => i.level <= gl.upToLevel);
+    reviewPool = [];
+    levelItems = newWords;
+  } else {
+    currentContentLevel = gl.contentLevel;
+    // Distractor pool draws from the whole tab (not just this level) since
+    // all levels are always playable — otherwise early levels wouldn't have
+    // enough other words to fill 4 choices.
+    levelItems = tabWords(currentTab);
+    newWords = levelItems.filter((i) => i.level === currentContentLevel);
+    reviewPool = levelItems.filter((i) => i.level < currentContentLevel);
+  }
 
   let built = [];
   newWords.forEach((w) => {
@@ -264,7 +295,11 @@ function handleChoice(el, chosenWord) {
     playCorrectChime();
     speak(`${currentItem.word}!`);
     updateProgressBar();
-    setTimeout(advanceRound, 1600);
+    if (currentItem.videoReward && !videosDisabled()) {
+      setTimeout(() => playVideoReward(currentItem.videoReward, advanceRound), 1200);
+    } else {
+      setTimeout(advanceRound, 1600);
+    }
   } else {
     el.classList.add("wrong");
     el.disabled = true;
@@ -546,6 +581,41 @@ function playCorrectChime() {
 }
 function playWrongChime() {
   playTone([440, 349], 0.18);
+}
+
+// ============================================================
+// Video reward (YouTube Shorts, per-word, skippable)
+// ============================================================
+
+const NO_VIDEOS_KEY = "ww_no_videos";
+function videosDisabled() {
+  return localStorage.getItem(NO_VIDEOS_KEY) === "1";
+}
+
+const noVideosCheckbox = document.getElementById("no-videos-checkbox");
+noVideosCheckbox.checked = videosDisabled();
+noVideosCheckbox.addEventListener("change", () => {
+  localStorage.setItem(NO_VIDEOS_KEY, noVideosCheckbox.checked ? "1" : "0");
+});
+
+function playVideoReward(shortId, onDone) {
+  const overlay = document.getElementById("video-overlay");
+  const frame = document.getElementById("video-frame");
+  const skipBtn = document.getElementById("video-skip-btn");
+
+  let finished = false;
+  const finish = () => {
+    if (finished) return;
+    finished = true;
+    overlay.classList.remove("active");
+    frame.src = "";
+    onDone();
+  };
+
+  frame.src = `https://www.youtube.com/embed/${shortId}?autoplay=1&playsinline=1`;
+  overlay.classList.add("active");
+  skipBtn.onclick = finish;
+  setTimeout(finish, 35000); // Shorts run well under this; safety cap in case skip is missed
 }
 
 // ============================================================
