@@ -37,8 +37,16 @@
 //                    otherwise inert. Use to pull a word out of rotation
 //                    temporarily without losing its content.
 //   videoReward    - (optional) a YouTube Shorts ID. After the child answers
-//                    this word correctly (either mode), a short video plays
-//                    before advancing to the next round, skippable anytime.
+//                    this word correctly (either mode), a 4-second clip
+//                    plays before advancing to the next round, skippable
+//                    anytime (and can be disabled entirely via the "No
+//                    videos" checkbox on the start screen). Muted by
+//                    default — see videoSound below.
+//   videoSound     - (optional) true plays that word's videoReward with
+//                    sound. Every videoReward is muted unless this is set —
+//                    it's opt-in, not opt-out, so a newly added videoReward
+//                    is muted automatically without needing to remember to
+//                    flag it.
 
 const TABS = [
   { id: "family", label: "Family" },
@@ -69,13 +77,13 @@ const WORD_ITEMS = [
   { word: "Keyboard", tab: "computer", image: "images/keyboard.jpg", level: 1, chunks: ["Key", "board"] },
   { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 2, chunks: ["Mouse"] },
   { word: "Printer", tab: "computer", image: "images/printer.jpeg", level: 2, videoReward: "aa2QE76Ag1M", chunks: ["Prin", "ter"] },
-  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 3, videoReward: "vqCXV6L4CZ4", chunks: ["Spea", "ker"] },
+  { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 3, videoReward: "vqCXV6L4CZ4", videoSound: true, chunks: ["Spea", "ker"] },
   { word: "UPS", tab: "computer", image: "images/UPS.jpeg", level: 3, videoReward: "YJcn6Xdz11k", chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
   { word: "CPU", tab: "computer", image: "images/CPU.jpg", level: 3, hidden: true, chunks: ["C", "P", "U"], letterByLetter: true, note: "the brain of the computer" },
 
   // ---- Computer Types ----
-  { word: "Computer", tab: "types", image: "images/computer.jpg", level: 1, chunks: ["Com", "pu", "ter"] },
-  { word: "Laptop", tab: "types", image: "images/laptop.jpg", level: 1, chunks: ["Lap", "top"] },
+  { word: "Computer", tab: "types", image: "images/computer.jpg", level: 1, videoReward: "AvncEdzcJLk", chunks: ["Com", "pu", "ter"] },
+  { word: "Laptop", tab: "types", image: "images/laptop.jpg", level: 1, videoReward: "iOCq_vONzaI", chunks: ["Lap", "top"] },
   { word: "Desktop", tab: "types", image: "images/desktop.jpg", level: 2, chunks: ["Desk", "top"] },
   { word: "Tablet", tab: "types", image: "images/tablet.jpg", level: 2, chunks: ["Ta", "blet"] },
   { word: "Smartphone", tab: "types", image: "images/smartphone.jpg", level: 3, chunks: ["Smart", "phone"] },

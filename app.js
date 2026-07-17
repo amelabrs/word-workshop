@@ -296,7 +296,7 @@ function handleChoice(el, chosenWord) {
     speak(`${currentItem.word}!`);
     updateProgressBar();
     if (currentItem.videoReward && !videosDisabled()) {
-      setTimeout(() => playVideoReward(currentItem.videoReward, advanceRound), 1200);
+      setTimeout(() => playVideoReward(currentItem.videoReward, advanceRound, !currentItem.videoSound), 1200);
     } else {
       setTimeout(advanceRound, 1600);
     }
@@ -598,7 +598,7 @@ noVideosCheckbox.addEventListener("change", () => {
   localStorage.setItem(NO_VIDEOS_KEY, noVideosCheckbox.checked ? "1" : "0");
 });
 
-function playVideoReward(shortId, onDone) {
+function playVideoReward(shortId, onDone, muted) {
   const overlay = document.getElementById("video-overlay");
   const frame = document.getElementById("video-frame");
   const skipBtn = document.getElementById("video-skip-btn");
@@ -612,10 +612,11 @@ function playVideoReward(shortId, onDone) {
     onDone();
   };
 
-  frame.src = `https://www.youtube.com/embed/${shortId}?autoplay=1&playsinline=1`;
+  const muteParam = muted ? "&mute=1" : "";
+  frame.src = `https://www.youtube.com/embed/${shortId}?autoplay=1&playsinline=1${muteParam}`;
   overlay.classList.add("active");
   skipBtn.onclick = finish;
-  setTimeout(finish, 35000); // Shorts run well under this; safety cap in case skip is missed
+  setTimeout(finish, 4000); // brief peek, not the full clip
 }
 
 // ============================================================
