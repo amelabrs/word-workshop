@@ -292,13 +292,25 @@ function handleChoice(el, chosenWord) {
     answered = true;
     if (roundClean) stars++;
     el.classList.add("correct");
-    playCorrectChime();
-    speak(`${currentItem.word}!`);
-    updateProgressBar();
-    if (currentItem.videoReward && !videosDisabled()) {
-      setTimeout(() => playVideoReward(currentItem.videoReward, advanceRound, !currentItem.videoSound), 1200);
-    } else {
+
+    const hasVideo = currentItem.videoReward && !videosDisabled();
+    const muted = !currentItem.videoSound;
+    const showFeedback = () => {
+      playCorrectChime();
+      speak(`${currentItem.word}!`);
+      updateProgressBar();
       setTimeout(advanceRound, 1600);
+    };
+
+    if (hasVideo && videoBeforeEnabled()) {
+      playVideoReward(currentItem.videoReward, showFeedback, muted);
+    } else if (hasVideo) {
+      playCorrectChime();
+      speak(`${currentItem.word}!`);
+      updateProgressBar();
+      setTimeout(() => playVideoReward(currentItem.videoReward, advanceRound, muted), 1200);
+    } else {
+      showFeedback();
     }
   } else {
     el.classList.add("wrong");
@@ -596,6 +608,17 @@ const noVideosCheckbox = document.getElementById("no-videos-checkbox");
 noVideosCheckbox.checked = videosDisabled();
 noVideosCheckbox.addEventListener("change", () => {
   localStorage.setItem(NO_VIDEOS_KEY, noVideosCheckbox.checked ? "1" : "0");
+});
+
+const VIDEO_BEFORE_KEY = "ww_video_before";
+function videoBeforeEnabled() {
+  return localStorage.getItem(VIDEO_BEFORE_KEY) === "1";
+}
+
+const videoBeforeCheckbox = document.getElementById("video-before-checkbox");
+videoBeforeCheckbox.checked = videoBeforeEnabled();
+videoBeforeCheckbox.addEventListener("change", () => {
+  localStorage.setItem(VIDEO_BEFORE_KEY, videoBeforeCheckbox.checked ? "1" : "0");
 });
 
 function playVideoReward(shortId, onDone, muted) {

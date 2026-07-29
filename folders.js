@@ -75,7 +75,7 @@ const WORD_ITEMS = [
   // review levels after levels 2 and 3 automatically. CPU is hidden for now.
   { word: "Monitor", tab: "computer", image: "images/monitor.svg", level: 1, chunks: ["Mo", "ni", "tor"] },
   { word: "Keyboard", tab: "computer", image: "images/keyboard.jpg", level: 1, chunks: ["Key", "board"] },
-  { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 2, chunks: ["Mouse"] },
+  { word: "Mouse", tab: "computer", image: "images/mouse.jpg", level: 2, videoReward: "X5ASPdqBX9w", chunks: ["Mouse"] },
   { word: "Printer", tab: "computer", image: "images/printer.jpeg", level: 2, videoReward: "aa2QE76Ag1M", chunks: ["Prin", "ter"] },
   { word: "Speaker", tab: "computer", image: "images/speaker.jpg", level: 3, videoReward: "vqCXV6L4CZ4", videoSound: true, chunks: ["Spea", "ker"] },
   { word: "UPS", tab: "computer", image: "images/UPS.jpeg", level: 3, videoReward: "YJcn6Xdz11k", chunks: ["U", "P", "S"], letterByLetter: true, note: "keeps the computer on when the power goes off" },
