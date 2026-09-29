@@ -54,6 +54,7 @@ const TABS = [
   { id: "types", label: "Computer Types" },
   { id: "places", label: "Places" },
   { id: "plants", label: "Plants" },
+  { id: "senses", label: "Five Senses" },
 ];
 
 const WORD_ITEMS = [
@@ -100,4 +101,11 @@ const WORD_ITEMS = [
   { word: "Leaf", tab: "plants", image: "images/leaf.png", level: 1, chunks: ["Leaf"] },
   { word: "Stem", tab: "plants", image: "images/stem.jpeg", level: 2, chunks: ["Stem"] },
   { word: "Root", tab: "plants", image: "images/root.jpeg", level: 2, chunks: ["Root"] },
+
+  // ---- Five Senses ----
+  // Only See/Feel so far — Hear/Smell/Taste to come. Shared group "senses"
+  // keeps their answer choices to each other, same as the family "immediate"
+  // group.
+  { word: "See", tab: "senses", image: "images/see.jpg", level: 1, group: "senses", chunks: ["S", "ee"] },
+  { word: "Feel", tab: "senses", image: "images/feel.jpg", level: 1, group: "senses", chunks: ["F", "ee", "l"] },
 ];
